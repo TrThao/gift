@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11100f">
+  <title>Một điều dành riêng cho Ánh</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="grain"></span>
+    <div class="floating-marks" id="floatingMarks"></div>
+  </div>
+
+  <canvas class="fx-canvas" id="fxCanvas" aria-hidden="true"></canvas>
+  <div class="cursor-trail" id="cursorTrail" aria-hidden="true"></div>
+
+  <div class="scene-transition" id="sceneTransition" aria-hidden="true">
+    <div class="bridge-lines" id="bridgeLines" aria-live="polite">
+      <p>Đến đây rồi...</p>
+      <p>À...</p>
+      <p>Đến lúc mở món quà rồi. 🎁</p>
+    </div>
+  </div>
+
+  <div class="gift-firework-flash" id="giftFireworkFlash" aria-hidden="true"></div>
+
+  <button class="audio-toggle" id="audioToggle" type="button" aria-label="Tắt nhạc nền">
+    <svg class="icon-audio-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4z"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+    <svg class="icon-audio-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4z"/>
+      <line x1="23" y1="9" x2="17" y2="15"/>
+      <line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+  </button>
+
+  <button class="demo-toggle" id="demoToggle" type="button" aria-label="Mở chế độ demo">
+    <span></span><span></span>
+  </button>
+
+  <aside class="demo-panel" id="demoPanel">
+    <div class="demo-heading">
+      <div>
+        <small>CHẾ ĐỘ XEM THỬ</small>
+        <h2>Điều chỉnh thời gian</h2>
+      </div>
+      <button id="closeDemo" class="icon-button" type="button">×</button>
+    </div>
+
+    <label>
+      <span>Ngày hiện tại giả lập</span>
+      <input type="date" id="currentDate">
+    </label>
+
+    <label>
+      <span>Ngày mở khóa</span>
+      <input type="date" id="birthdayDate">
+    </label>
+
+    <div class="demo-actions">
+      <button id="applyDate" class="button button-dark" type="button">Xem ngày này</button>
+      <button id="useRealDate" class="text-button" type="button">Trở về thời gian thật</button>
+    </div>
+
+    <p class="demo-note">
+      Mật khẩu bản demo là <strong>1608</strong>.
+    </p>
+  </aside>
+
+  <main class="shell">
+    <section class="screen wait-screen" id="waitingScreen">
+      <header class="topline">
+        <span id="chapterLabel">CHƯƠNG 01</span>
+        <span id="displayDate">14 · 07 · 2026</span>
+      </header>
+
+      <div class="kinetic-rail" aria-hidden="true">
+        <div id="kineticRail">
+          <span>CHƯA ĐẾN LÚC</span>
+          <span>GIỮ LẠI MỘT CHÚT TÒ MÒ</span>
+          <span>ĐÚNG NGÀY · ĐÚNG NGƯỜI</span>
+          <span>CHƯA ĐẾN LÚC</span>
+          <span>GIỮ LẠI MỘT CHÚT TÒ MÒ</span>
+          <span>ĐÚNG NGÀY · ĐÚNG NGƯỜI</span>
+        </div>
+      </div>
+
+      <div class="waiting-layout">
+        <div class="waiting-copy">
+          <p class="kicker" id="dailyKicker">MỘT ĐIỀU ĐANG ĐƯỢC CHUẨN BỊ</p>
+          <h1 id="dailyTitle">Chưa cần biết đó là gì.</h1>
+          <p class="lead" id="dailyMessage">
+            Cứ để ngày tháng đi qua chậm một chút. Có vài điều chỉ đẹp khi xuất hiện đúng lúc.
+          </p>
+        </div>
+
+        <div class="time-object">
+          <div class="countdown-visual">
+            <svg class="countdown-progress" viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <linearGradient id="countdownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d4aa95"></stop>
+                  <stop offset="55%" stop-color="#e5b8c4"></stop>
+                  <stop offset="100%" stop-color="#f0c9a8"></stop>
+                </linearGradient>
+              </defs>
+              <circle class="countdown-track" cx="50" cy="50" r="46"></circle>
+              <circle class="countdown-fill" id="countdownProgress" cx="50" cy="50" r="46"></circle>
+            </svg>
+
+            <div class="time-ring">
+              <div class="time-center">
+                <span class="time-number" id="days">00</span>
+                <span class="time-unit">ngày</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="countdown-target" id="countdownTarget">đến 16 · 08</p>
+
+          <div class="time-detail">
+            <div class="time-pill"><strong id="hours">00</strong><span>giờ</span></div>
+            <div class="time-pill"><strong id="minutes">00</strong><span>phút</span></div>
+            <div class="time-pill time-pill-accent"><strong id="seconds">00</strong><span>giây</span></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="wait-footer">
+        <span class="line"></span>
+        <p id="dateHint">Mai ghé lại xem thử nhé.</p>
+      </footer>
+    </section>
+
+    <section class="screen unlock-screen hidden" id="unlockScreen">
+      <div class="unlock-scene">
+        <div class="unlock-intro">
+          <p class="kicker">CHIẾC HỘP VẪN ĐANG KHÓA</p>
+          <h1>Anh có để lại một mật mã.</h1>
+          <p class="lead">Một ngày đặc biệt — em nhớ chứ?</p>
+        </div>
+
+        <div class="locket-panel" id="locketPanel">
+          <div class="locket-glow" aria-hidden="true"></div>
+
+          <div class="locket-lock" id="locketLock" aria-hidden="true">
+            <span class="locket-shackle"></span>
+            <span class="locket-body">
+              <span class="locket-keyhole"></span>
+            </span>
+          </div>
+
+          <div class="passcode" id="passcodeArea">
+            <p class="passcode-prompt" id="passcodeStatus">Gõ từng số nhé</p>
+
+            <div class="code-pearls" id="passcodeDisplay" aria-label="Mật khẩu đã nhập">
+              <span data-slot="0"><i class="pearl-digit" aria-hidden="true"></i></span>
+              <span data-slot="1"><i class="pearl-digit" aria-hidden="true"></i></span>
+              <span data-slot="2"><i class="pearl-digit" aria-hidden="true"></i></span>
+              <span data-slot="3"><i class="pearl-digit" aria-hidden="true"></i></span>
+            </div>
+
+            <button class="clue-button" id="clueButton" type="button">
+              <span class="clue-star">✦</span>
+              <span>Xem manh mối</span>
+            </button>
+
+            <div class="clue-card hidden" id="clueCard">
+              <span class="clue-fold" aria-hidden="true"></span>
+              <small>MANH MỐI</small>
+              <strong>Ngày mà anh đã đếm ngược suốt thời gian qua.</strong>
+              <span class="clue-hand">Ngày hôm nay.</span>
+            </div>
+
+            <div class="dial-ring" id="keypad" role="group" aria-label="Bàn phím số">
+              <button type="button" class="dial-key" data-key="1"><span>1</span></button>
+              <button type="button" class="dial-key" data-key="2"><span>2</span></button>
+              <button type="button" class="dial-key" data-key="3"><span>3</span></button>
+              <button type="button" class="dial-key" data-key="4"><span>4</span></button>
+              <button type="button" class="dial-key" data-key="5"><span>5</span></button>
+              <button type="button" class="dial-key" data-key="6"><span>6</span></button>
+              <button type="button" class="dial-key" data-key="7"><span>7</span></button>
+              <button type="button" class="dial-key" data-key="8"><span>8</span></button>
+              <button type="button" class="dial-key" data-key="9"><span>9</span></button>
+            </div>
+
+            <div class="dial-bottom">
+              <button type="button" class="dial-aux" data-action="backspace" aria-label="Xóa một số">←</button>
+              <button type="button" class="dial-key dial-key-zero" data-key="0"><span>0</span></button>
+              <button type="button" class="dial-aux" data-action="clear" aria-label="Làm lại">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen prelude-screen hidden" id="preludeScreen">
+      <div class="prelude-lines" id="preludeLines" aria-live="polite">
+        <p data-line="0">Hôm nay cuối cùng cũng đến rồi.</p>
+        <p data-line="1">Anh đã giữ phần này lại khá lâu.</p>
+        <p data-line="2">Nếu người đang ở đây là Ánh...</p>
+        <p data-line="3">Hãy đặt tay lên đây nhé.</p>
+      </div>
+
+      <div class="hold-zone hidden" id="holdZone">
+        <button class="fingerprint-button" id="holdButton" type="button" aria-label="Giữ để xác nhận vân tay">
+          <span class="fingerprint-core">
+            
+<svg class="fingerprint-svg" viewBox="0 0 100 122" aria-hidden="true">
+  <path d="M20 42C25 25 37 16 50 16c17 0 31 13 31 31"/>
+  <path d="M14 52c0-22 16-40 36-40 22 0 40 18 40 41"/>
+  <path d="M10 64V52C10 27 28 7 50 7c25 0 44 20 44 46v13"/>
+  <path d="M23 58V48c0-16 12-29 27-29 17 0 30 14 30 31v17"/>
+  <path d="M31 61V49c0-11 8-20 19-20s20 9 20 21v18"/>
+  <path d="M39 65V51c0-6 5-12 11-12 7 0 12 6 12 13v18"/>
+  <path d="M47 68V53c0-2 1-4 3-4s4 2 4 5v21"/>
+  <path d="M17 68c0 23 4 37 13 47"/>
+  <path d="M27 69c0 20 3 32 10 42"/>
+  <path d="M37 70c0 17 2 27 7 36"/>
+  <path d="M47 77c0 12 1 20 4 28"/>
+  <path d="M58 75c0 14-1 24-4 34"/>
+  <path d="M68 70c0 18-2 31-8 43"/>
+  <path d="M78 70c0 21-4 36-12 48"/>
+  <path d="M88 70c0 23-5 39-15 51"/>
+</svg>
+            <span class="fingerprint-scan-fill" aria-hidden="true">
+<svg class="fingerprint-svg" viewBox="0 0 100 122" aria-hidden="true">
+  <path d="M20 42C25 25 37 16 50 16c17 0 31 13 31 31"/>
+  <path d="M14 52c0-22 16-40 36-40 22 0 40 18 40 41"/>
+  <path d="M10 64V52C10 27 28 7 50 7c25 0 44 20 44 46v13"/>
+  <path d="M23 58V48c0-16 12-29 27-29 17 0 30 14 30 31v17"/>
+  <path d="M31 61V49c0-11 8-20 19-20s20 9 20 21v18"/>
+  <path d="M39 65V51c0-6 5-12 11-12 7 0 12 6 12 13v18"/>
+  <path d="M47 68V53c0-2 1-4 3-4s4 2 4 5v21"/>
+  <path d="M17 68c0 23 4 37 13 47"/>
+  <path d="M27 69c0 20 3 32 10 42"/>
+  <path d="M37 70c0 17 2 27 7 36"/>
+  <path d="M47 77c0 12 1 20 4 28"/>
+  <path d="M58 75c0 14-1 24-4 34"/>
+  <path d="M68 70c0 18-2 31-8 43"/>
+  <path d="M78 70c0 21-4 36-12 48"/>
+  <path d="M88 70c0 23-5 39-15 51"/>
+</svg></span>
+          </span>
+          <span class="scan-line" aria-hidden="true"></span>
+        </button>
+        <div class="fingerprint-status" id="fingerprintStatus">Đặt tay lên đây</div>
+        <p>Giữ nhẹ khoảng hai giây</p>
+      </div>
+
+      <div class="reveal-fragments" id="revealFragments" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <section class="screen letter-screen hidden" id="letterScreen">
+      <div class="letter-sky" aria-hidden="true">
+        <div class="letter-marquee">
+          <div>
+            <span>ÁNH · MỘT NGÀY THẬT DỊU DÀNG ·</span>
+            <span>ÁNH · MỘT NGÀY THẬT DỊU DÀNG ·</span>
+            <span>ÁNH · MỘT NGÀY THẬT DỊU DÀNG ·</span>
+            <span>ÁNH · MỘT NGÀY THẬT DỊU DÀNG ·</span>
+          </div>
+        </div>
+        <div class="spark-field" id="sparkField"></div>
+      </div>
+
+      <div class="letter-scene">
+        <div class="letter-heading">
+          <span class="letter-number">01</span>
+          <span class="letter-rule"></span>
+          <span class="letter-caption">DÀNH RIÊNG CHO ÁNH</span>
+        </div>
+
+        <div class="cake-stage" id="cakeStage">
+          <p class="cake-caption" id="cakeCaption">Thổi tắt từng ngọn nến trước đã nhé</p>
+          <div class="cake" id="cake" role="group" aria-label="Bánh sinh nhật có bốn ngọn nến">
+            <div class="cake-glow" aria-hidden="true"></div>
+            <svg class="cake-svg" viewBox="0 0 260 260" width="260" height="260" aria-hidden="true">
+              <defs>
+                <linearGradient id="cake-choco-side" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#2a1610"/>
+                  <stop offset="15%" stop-color="#5a3626"/>
+                  <stop offset="50%" stop-color="#7d4a34"/>
+                  <stop offset="85%" stop-color="#5a3626"/>
+                  <stop offset="100%" stop-color="#2a1610"/>
+                </linearGradient>
+                <radialGradient id="cake-frost-dome" cx="42%" cy="30%" r="75%">
+                  <stop offset="0%" stop-color="#fff8fb"/>
+                  <stop offset="35%" stop-color="#ffd4e0"/>
+                  <stop offset="75%" stop-color="#f3a4b8"/>
+                  <stop offset="100%" stop-color="#d8829a"/>
+                </radialGradient>
+                <radialGradient id="cake-plate-grad" cx="50%" cy="20%" r="90%">
+                  <stop offset="0%" stop-color="#fffbf7"/>
+                  <stop offset="55%" stop-color="#e5cab7"/>
+                  <stop offset="100%" stop-color="#8f6250"/>
+                </radialGradient>
+                <linearGradient id="cake-drip-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f3a4b8"/>
+                  <stop offset="60%" stop-color="#e88ba0"/>
+                  <stop offset="100%" stop-color="#c26f86"/>
+                </linearGradient>
+                <radialGradient id="berry-grad" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#ff9aa8"/>
+                  <stop offset="55%" stop-color="#d43a52"/>
+                  <stop offset="100%" stop-color="#7d1a2a"/>
+                </radialGradient>
+              </defs>
+
+              <!-- Bóng đổ dưới đất -->
+              <ellipse cx="130" cy="250" rx="115" ry="5" fill="rgba(0,0,0,.5)" opacity=".65"/>
+
+              <!-- Đĩa sứ -->
+              <ellipse cx="130" cy="240" rx="120" ry="9" fill="url(#cake-plate-grad)"/>
+              <ellipse cx="130" cy="236" rx="106" ry="3.2" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+
+              <!-- Thân bánh chocolate — 1 tầng cao -->
+              <path fill="url(#cake-choco-side)" d="M 40 118 L 40 226 C 40 236 220 236 220 226 L 220 118 Z"/>
+
+              <!-- Đáy tối tạo perspective -->
+              <ellipse cx="130" cy="226" rx="90" ry="10" fill="#1c0d08"/>
+
+              <!-- Vệt bánh ngang (layer trong) -->
+              <line x1="42" y1="170" x2="218" y2="170" stroke="rgba(0,0,0,.28)" stroke-width="1"/>
+              <line x1="42" y1="196" x2="218" y2="196" stroke="rgba(0,0,0,.22)" stroke-width="1"/>
+
+              <!-- Kem chảy dọc thân bánh (từ mép trên xuống) -->
+              <path fill="url(#cake-drip-grad)" d="
+                M 40 118
+                C 40 112 220 112 220 118
+                L 220 138
+                Q 214 152 208 138
+                Q 200 156 192 140
+                Q 184 154 176 138
+                Q 168 158 160 140
+                Q 152 154 144 138
+                Q 136 160 128 140
+                Q 120 152 112 138
+                Q 104 156 96 140
+                Q 88 152 80 138
+                Q 72 158 64 140
+                Q 56 152 48 138
+                L 40 138
+                Z" opacity=".95"/>
+
+              <!-- Mặt kem trên (dome hồng) -->
+              <ellipse cx="130" cy="115" rx="90" ry="14" fill="url(#cake-frost-dome)"/>
+
+              <!-- Ánh sáng bóng trên mặt kem -->
+              <ellipse cx="112" cy="110" rx="42" ry="4" fill="rgba(255,255,255,.55)" opacity=".7"/>
+
+              <!-- Quả anh đào / berries -->
+              <g class="cake-berries">
+                <circle cx="90" cy="115" r="4.2" fill="url(#berry-grad)"/>
+                <circle cx="88.5" cy="113.5" r="1.1" fill="rgba(255,255,255,.85)"/>
+
+                <circle cx="132" cy="118" r="4.5" fill="url(#berry-grad)"/>
+                <circle cx="130.5" cy="116.5" r="1.2" fill="rgba(255,255,255,.85)"/>
+
+                <circle cx="172" cy="114" r="4.2" fill="url(#berry-grad)"/>
+                <circle cx="170.5" cy="112.5" r="1.1" fill="rgba(255,255,255,.85)"/>
+              </g>
+            </svg>
+            <div class="cake-candles">
+              <button class="candle" data-candle="0" type="button" aria-label="Ngọn nến 1">
+                <span class="candle-stick"></span>
+                <span class="candle-wick"></span>
+                <span class="candle-flame" aria-hidden="true"><span class="flame-core"></span></span>
+                <span class="candle-smoke" aria-hidden="true"></span>
+              </button>
+              <button class="candle" data-candle="1" type="button" aria-label="Ngọn nến 2">
+                <span class="candle-stick"></span>
+                <span class="candle-wick"></span>
+                <span class="candle-flame" aria-hidden="true"><span class="flame-core"></span></span>
+                <span class="candle-smoke" aria-hidden="true"></span>
+              </button>
+              <button class="candle" data-candle="2" type="button" aria-label="Ngọn nến 3">
+                <span class="candle-stick"></span>
+                <span class="candle-wick"></span>
+                <span class="candle-flame" aria-hidden="true"><span class="flame-core"></span></span>
+                <span class="candle-smoke" aria-hidden="true"></span>
+              </button>
+              <button class="candle" data-candle="3" type="button" aria-label="Ngọn nến 4">
+                <span class="candle-stick"></span>
+                <span class="candle-wick"></span>
+                <span class="candle-flame" aria-hidden="true"><span class="flame-core"></span></span>
+                <span class="candle-smoke" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+          <p class="cake-wish" id="cakeWish">Chúc mừng sinh nhật, Ánh.</p>
+        </div>
+
+        <article class="romantic-letter is-hidden" id="romanticLetter">
+          <span class="paper-glow" aria-hidden="true"></span>
+          <span class="corner-flower corner-flower-a" aria-hidden="true">✦</span>
+          <span class="corner-flower corner-flower-b" aria-hidden="true">✦</span>
+
+          <div class="letter-content">
+            <p class="letter-salutation">Gửi Ánh,</p>
+
+            <p class="letter-paragraph">
+              Anh đã nghĩ khá lâu xem nên viết gì cho em trong ngày hôm nay.
+              Một lời chúc bình thường thì có vẻ hơi nhanh, còn một bức thư quá dài
+              lại dễ thành cầu kỳ. Cuối cùng, anh chọn làm trang này để em có thể
+              mở từng phần thật chậm, theo cách riêng của em.
+            </p>
+
+            <p class="letter-paragraph">
+              Có lẽ từ lúc nào đó, anh bắt đầu để ý đến những điều rất nhỏ:
+              cách em kể một câu chuyện, lúc em vui, lúc em yên lặng,
+              hay những lần em vô tình khiến không khí xung quanh trở nên nhẹ hơn.
+              Những điều ấy không quá lớn, nhưng đủ để anh nhớ.
+            </p>
+
+            <p class="letter-paragraph">
+              Anh chỉ mong khi mở đến đây, em sẽ thấy vui một chút.
+              Không cần phải nghĩ quá nhiều về lý do, cũng không cần phải tìm một câu trả lời nào cả.
+              Cứ xem đây là một điều nhỏ được chuẩn bị riêng cho em là được.
+            </p>
+
+            <p class="letter-paragraph">
+              Anh mong những tháng ngày sắp tới của em sẽ có thật nhiều điều dễ thương:
+              những buổi đi chơi vui vẻ, những món ăn ngon, những tin nhắn khiến em bất giác mỉm cười,
+              và những ngày trôi qua nhẹ nhàng hơn một chút.
+            </p>
+
+            <p class="letter-paragraph">
+              Còn anh, anh chỉ mong trong một vài khoảnh khắc vui của em sau này,
+              thỉnh thoảng anh cũng có thể được xuất hiện ở đó.
+              Không cần quá nhiều, chỉ cần đủ để em nhớ rằng đã có một người
+              từng dành thời gian chuẩn bị điều này cho em.
+            </p>
+
+            <p class="letter-ending">
+              Chúc Ánh có một ngày thật vui.<br>
+              Và mong món quà nhỏ này sẽ làm em mỉm cười theo cách thật tự nhiên.
+            </p>
+
+            <p class="signature">— Anh</p>
+          </div>
+        </article>
+
+        <button class="button button-light next-button romantic-next" id="continueButton" type="button">
+          <span>Đi tiếp một chút nữa nhé</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="screen memory-screen hidden" id="memoryScreen">
+      <div class="memory-stars" id="memoryStars" aria-hidden="true"></div>
+
+      <div class="memory-wrap">
+        <p class="kicker">TRƯỚC KHI ĐẾN MÓN QUÀ</p>
+        <h1 class="memory-title">Anh còn cất vài câu ở đây.</h1>
+
+        <div class="memory-lines">
+          <p>Anh vẫn còn vài điều muốn giữ lại.</p>
+          <p>Có những câu để ở đây sẽ thú vị hơn.</p>
+          <p>Mỗi ngôi sao sẽ mở ra một câu nhỏ anh dành cho em.</p>
+        </div>
+
+        <p class="star-guide">
+          Có <strong>5 ngôi sao</strong> anh giấu riêng cho em. Mỗi lần chỉ một ngôi hiện ra —
+          đọc thật chậm, rồi giữ lại để xem lại bất cứ lúc nào.
+        </p>
+
+        <div class="star-map" id="starMap" role="application" aria-label="Bầu trời có năm ngôi sao đặc biệt"></div>
+
+        <div class="star-progress" id="starProgress" aria-label="Tiến độ tìm sao">
+          <button type="button" data-star="0" disabled aria-label="Ngôi sao 1 chưa mở"></button>
+          <button type="button" data-star="1" disabled aria-label="Ngôi sao 2 chưa mở"></button>
+          <button type="button" data-star="2" disabled aria-label="Ngôi sao 3 chưa mở"></button>
+          <button type="button" data-star="3" disabled aria-label="Ngôi sao 4 chưa mở"></button>
+          <button type="button" data-star="4" disabled aria-label="Ngôi sao 5 chưa mở"></button>
+          <small class="star-counter" id="starCounter">0 / 5</small>
+        </div>
+
+        <div class="star-message" id="starMessage">
+          Có một ngôi sao đang sáng khác thường. Thử tìm nó nhé.
+        </div>
+
+        <aside class="star-keepsake hidden" id="starKeepsake">
+          <p class="star-keepsake-label">Những câu đã giữ lại</p>
+          <div class="star-keepsake-list" id="starKeepsakeList"></div>
+        </aside>
+
+        <button class="button button-light memory-next is-disabled" id="memoryNextButton" type="button" disabled>
+          <span>Bây giờ mới đến món quà</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <div class="star-reveal-overlay hidden" id="starRevealOverlay" role="dialog" aria-modal="true">
+        <div class="star-reveal-card">
+          <span class="reveal-star-mark" aria-hidden="true">✦</span>
+          <small id="starRevealCount">NGÔI SAO 01 · 05</small>
+          <p id="starRevealText"></p>
+          <button class="button button-light reveal-continue" id="starRevealContinue" type="button">
+            <span id="starRevealContinueLabel">Giữ lại câu này</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+<section class="screen gift-screen hidden" id="giftScreen">
+      <div class="gift-copy">
+        <p class="kicker">PHẦN CUỐI CÙNG</p>
+        <h1>Đến lúc mở món quà rồi, Ánh.</h1>
+        <p class="lead">
+          Lần này đừng chạm một cái rồi thôi. Hãy mở từng lớp một nhé.
+        </p>
+      </div>
+
+      <div class="gift-stage" id="giftStage">
+        <button class="luxury-gift" id="giftObject" type="button" aria-label="Mở từng lớp hộp quà">
+          <span class="gift-aura"></span>
+          <span class="gift-box-back"></span>
+          <span class="gift-box-front"></span>
+          <span class="gift-ribbon-vertical"></span>
+          <span class="gift-ribbon-horizontal"></span>
+          <span class="gift-lid"></span>
+          <span class="gift-bow bow-left"></span>
+          <span class="gift-bow bow-right"></span>
+          <span class="gift-card">
+            <small>DÀNH CHO ÁNH</small>
+            <strong>Một điều nhỏ<br>từ anh</strong>
+          </span>
+          <span class="gift-light"></span>
+        </button>
+
+        <div class="gift-instruction" id="giftInstruction">
+          Chiếc hộp vẫn đang khóa. Chạm vào để mở khóa
+        </div>
+
+        <button class="button button-light claim-button is-disabled" id="claimGiftButton" type="button" disabled>
+          <span>Nhận món quà</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="screen success-screen hidden" id="successScreen">
+      <div class="success-line"></div>
+      <p class="kicker">XONG RỒI</p>
+      <h1>Món quà đã đến nơi.</h1>
+      <p class="lead">
+        Nhớ kiểm tra MoMo nhé.<br>
+        Hy vọng điều nhỏ này khiến hôm nay của em vui hơn một chút.
+      </p>
+
+      <div class="success-date" id="successDate">16 · 08</div>
+
+      <div class="polaroid-row" id="polaroidRow" aria-hidden="true"></div>
+
+      <p class="handwritten-signoff" id="handwrittenSignoff">Cảm ơn em đã đi tới đây, Ánh.</p>
+
+      <div class="success-actions">
+        <button class="button button-light keepsake-save" id="keepsakeSaveButton" type="button">
+          <span>Lưu lại kỷ niệm</span>
+          <span>↓</span>
+        </button>
+        <button class="text-button restart-button" id="restartButton" type="button">
+          Xem lại từ đầu
+        </button>
+      </div>
+
+      <canvas id="keepsakeCanvas" width="1080" height="1350" hidden></canvas>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
