@@ -190,6 +190,12 @@ function ensureFxRunning() {
   requestAnimationFrame(fxLoop);
 }
 
+function clearFxParticles() {
+  fxParticles.length = 0;
+  fxRunning = false;
+  fxCtx?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && fxParticles.length > 0) ensureFxRunning();
 });
@@ -440,6 +446,7 @@ function resetGiftCinematic() {
   continueBtn?.classList.remove("is-visible");
   veil?.classList.remove("flash");
   fxCanvas?.classList.remove("above");
+  clearFxParticles();
   resetGiftFireworkFlash();
 }
 
@@ -467,7 +474,7 @@ async function playGiftHandoffReveal() {
   cinematic?.classList.add("is-revealing");
   handoff?.classList.add("is-revealing");
 
-  await sleep(3200);
+  await sleep(prefersReducedMotion ? 1700 : 3900);
 
   resetGiftCinematic();
   passcode = "";
@@ -490,6 +497,7 @@ async function playGiftGivingCinematic() {
 
   resetGiftCinematic();
   giftCinematicRunning = true;
+  clearFxParticles();
 
   cinematic.classList.add("is-active", "phase-fireworks");
   cinematic.setAttribute("aria-hidden", "false");
@@ -502,6 +510,7 @@ async function playGiftGivingCinematic() {
 
   await sleep(5400);
 
+  clearFxParticles();
   cinematic.classList.remove("phase-fireworks");
   cinematic.classList.add("phase-bouquet");
   fwPhase.classList.add("hidden");
@@ -636,6 +645,23 @@ let ambientOn = false;
 let ambientMuted = false;
 let ambientPrimed = false;
 let ambientWantsPlay = false;
+let currentAmbientScene = "waiting";
+let ambientDucked = false;
+
+const AMBIENT_LEVELS = {
+  waiting: 0.16,
+  unlock: 0.17,
+  prelude: 0.18,
+  letter: 0.14,
+  memory: 0.17,
+  gift: 0.19,
+  success: 0.2
+};
+
+function getAmbientLevel(scene = currentAmbientScene) {
+  const level = AMBIENT_LEVELS[scene] ?? AMBIENT_LEVELS.waiting;
+  return isLowPowerDevice ? level * 0.78 : level;
+}
 
 function fadeAmbientVolume(target, durationMs = 800) {
   if (!ambientAudio) return;
@@ -682,7 +708,7 @@ function markAmbientPlaying() {
   ambientOn = true;
   if (ambientAudio) {
     ambientAudio.muted = false;
-    fadeAmbientVolume(0.34, 1500);
+    fadeAmbientVolume(getAmbientLevel(), 1500);
   }
 }
 
@@ -726,7 +752,7 @@ function unlockAmbientFromGesture() {
   if (audio.paused || audio.muted) {
     audio.muted = false;
     audio.play()
-      .then(() => fadeAmbientVolume(0.34, 600))
+      .then(() => fadeAmbientVolume(getAmbientLevel(), 600))
       .catch(() => {});
   }
 }
@@ -743,16 +769,16 @@ function stopAmbient() {
 }
 
 function setAmbientScene(scene) {
+  currentAmbientScene = scene || "waiting";
   if (!ambientOn || !ambientAudio) return;
-  const volume = {
-    unlock: 0.3,
-    prelude: 0.32,
-    letter: 0.36,
-    memory: 0.33,
-    gift: 0.35,
-    success: 0.38
-  };
-  fadeAmbientVolume(volume[scene] ?? 0.34, 1800);
+  if (!ambientDucked) fadeAmbientVolume(getAmbientLevel(), 1000);
+}
+
+function setTypingAmbientDuck(active) {
+  ambientDucked = active;
+  if (!ambientOn || !ambientAudio) return;
+  const duckLevel = isLowPowerDevice ? 0.045 : 0.07;
+  fadeAmbientVolume(active ? duckLevel : getAmbientLevel(), active ? 180 : 650);
 }
 
 const audioToggleBtn = document.getElementById("audioToggle");
@@ -778,6 +804,8 @@ if (audioToggleBtn) {
 /* —— Soft synthesized SFX via Web Audio —— */
 const sfxBuffers = {};
 let audioCtx = null;
+let sfxMasterGain = null;
+let sfxCompressor = null;
 let letterTypeTimers = [];
 let pulseHoldTimer = null;
 
@@ -785,6 +813,16 @@ function getAudioCtx() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     audioCtx = new Ctx();
+    sfxMasterGain = audioCtx.createGain();
+    sfxMasterGain.gain.value = 0.86;
+    sfxCompressor = audioCtx.createDynamicsCompressor();
+    sfxCompressor.threshold.value = -20;
+    sfxCompressor.knee.value = 24;
+    sfxCompressor.ratio.value = 3;
+    sfxCompressor.attack.value = 0.004;
+    sfxCompressor.release.value = 0.2;
+    sfxMasterGain.connect(sfxCompressor);
+    sfxCompressor.connect(audioCtx.destination);
   }
   return audioCtx;
 }
@@ -844,9 +882,11 @@ function buildSynthFallback(name) {
     return s;
   });
 
-  if (name === "type") sfxBuffers.type = makeBuffer(0.035, (t, i) => {
+  if (name === "type") sfxBuffers.type = makeBuffer(0.07, (t, i) => {
     const n = ((Math.sin(i * 45.123) * 43758.5453) % 1) * 2 - 1;
-    return n * Math.exp(-t * 100) * 0.2;
+    const noise = n * Math.exp(-t * 58) * 0.26;
+    const tone = Math.sin(2 * Math.PI * 3200 * t) * Math.exp(-t * 72) * 0.22;
+    return noise + tone;
   });
 
   if (name === "pulse") sfxBuffers.pulse = makeBuffer(0.65, (t) => {
@@ -913,7 +953,7 @@ function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
     source.playbackRate.value = rate;
     gain.gain.value = Math.max(0, Math.min(1, volume));
     source.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(sfxMasterGain || ctx.destination);
     source.start(Math.max(0, ctx.currentTime + when));
   } catch (_) {}
 }
@@ -1060,12 +1100,18 @@ async function typewriteLetter() {
   if (!content) return;
   letterTypeAbort = false;
   letterTyping = true;
+  setTypingAmbientDuck(true);
   content.innerHTML = "";
 
   const perCharDelay = { salutation: 55, paragraph: 22, ending: 30, signature: 60 };
+  let typedVisibleChars = 0;
 
   for (let pi = 0; pi < originalLetterParagraphs.length; pi++) {
-    if (letterTypeAbort) { letterTyping = false; return; }
+    if (letterTypeAbort) {
+      letterTyping = false;
+      setTypingAmbientDuck(false);
+      return;
+    }
     const p = originalLetterParagraphs[pi];
     const el = document.createElement("p");
     el.className = p.cls;
@@ -1080,7 +1126,11 @@ async function typewriteLetter() {
     const chars = [...p.text];
     const chunkSize = isLowPowerDevice ? 5 : 3;
     for (let ci = 0; ci < chars.length; ci += chunkSize) {
-      if (letterTypeAbort) { letterTyping = false; return; }
+      if (letterTypeAbort) {
+        letterTyping = false;
+        setTypingAmbientDuck(false);
+        return;
+      }
       const fragment = document.createDocumentFragment();
       const revealBatch = [];
       const end = Math.min(chars.length, ci + chunkSize);
@@ -1102,8 +1152,11 @@ async function typewriteLetter() {
       requestAnimationFrame(() => {
         revealBatch.forEach(span => span.classList.add("visible"));
       });
-      if (revealBatch.some(span => span.textContent.trim()) && ci % 12 === 0) {
-        playSfx("type", { volume: 0.12, rate: 0.9 + Math.random() * 0.2 });
+      const visibleInBatch = revealBatch.filter(span => span.textContent.trim()).length;
+      const previousBeat = Math.floor(typedVisibleChars / 4);
+      typedVisibleChars += visibleInBatch;
+      if (Math.floor(typedVisibleChars / 4) > previousBeat) {
+        playSfx("type", { volume: 0.34, rate: 0.94 + Math.random() * 0.16 });
       }
       await sleep((delay + (Math.random() * 12 - 6)) * (end - ci));
     }
@@ -1111,6 +1164,7 @@ async function typewriteLetter() {
     await sleep(kind === "salutation" ? 400 : kind === "paragraph" ? 260 : 500);
   }
   letterTyping = false;
+  setTypingAmbientDuck(false);
 }
 
 function sleep(ms) {
@@ -1320,6 +1374,7 @@ function showScreen(name) {
   if (name !== "letter") {
     letterTypeAbort = true;
     letterTyping = false;
+    if (ambientDucked) setTypingAmbientDuck(false);
   }
   Object.values(screens).forEach(screen => screen.classList.add("hidden"));
   screens[name].classList.remove("hidden");

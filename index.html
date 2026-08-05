@@ -83,15 +83,16 @@
             <path class="draw-line" style="--d:6.65s;--dur:.8s"
                   d="M558 212 Q590 222 622 212 L612 300 L646 418 Q590 430 534 418 L568 300 Z"/>
             <path class="draw-line" style="--d:7.25s;--dur:.25s" d="M568 300 Q590 306 612 300"/>
-            <!-- Tay trái: vai → khuỷu → cổ tay → bàn tay -->
-            <path class="draw-line" style="--d:7.05s;--dur:.55s"
-                  d="M558 214 Q548 251 550 279 Q550 303 558 320 Q564 325 569 320 Q565 300 566 279 Q570 244 574 218"/>
-            <ellipse class="draw-line" style="--d:7.5s;--dur:.2s" cx="564" cy="324" rx="6" ry="8"/>
-            <!-- Tay phải đón hoa -->
+            <!-- Hai tay cùng đón và giữ bó hoa -->
+            <g class="drawn-woman-arm-support">
+              <path class="draw-line" style="--d:7.05s;--dur:.58s"
+                    d="M558 214 Q548 231 548 248 Q548 260 552 268 Q554 273 550 277 Q542 270 541 255 Q542 233 550 216"/>
+              <ellipse class="draw-line" style="--d:7.52s;--dur:.2s" cx="552" cy="272" rx="7" ry="5"/>
+            </g>
             <g class="drawn-woman-arm-receive">
               <path class="draw-line" style="--d:7.15s;--dur:.65s"
-                    d="M606 218 Q594 232 582 246 Q570 256 558 263 Q556 269 562 272 Q577 266 590 256 Q607 244 622 222"/>
-              <ellipse class="draw-line" style="--d:7.68s;--dur:.2s" cx="558" cy="268" rx="7" ry="5"/>
+                    d="M606 218 Q600 234 591 247 Q582 258 576 265 Q574 270 580 273 Q591 265 599 254 Q610 239 622 222"/>
+              <ellipse class="draw-line" style="--d:7.68s;--dur:.2s" cx="578" cy="269" rx="7" ry="5"/>
             </g>
             <!-- Hai chân cân đối và giày -->
             <path class="draw-line" style="--d:7.65s;--dur:.38s" d="M572 418 L572 451 Q578 456 584 451 L585 421"/>
@@ -104,6 +105,14 @@
 
           <!-- Chàng trai và các món quà cùng di chuyển -->
           <g class="drawn-man-unit">
+            <g class="drawn-man-scale">
+            <!-- Hộp quà hé lộ sau lưng trước khi được lấy ra -->
+            <g class="drawn-gift-behind">
+              <rect class="draw-line" style="--d:11.7s;--dur:.4s" x="108" y="244" width="58" height="48" rx="5"/>
+              <path class="draw-line gift-ribbon" style="--d:11.95s;--dur:.3s" d="M104 244 L170 244 L170 255 L104 255 Z M137 244 L137 292"/>
+              <path class="draw-line gift-ribbon" style="--d:12.15s;--dur:.3s"
+                    d="M137 244 Q123 233 126 225 Q135 224 138 240 Q142 224 151 226 Q154 236 137 244"/>
+            </g>
             <g class="drawn-man">
               <path class="draw-line" style="--d:.5s;--dur:.72s"
                     d="M145 151 Q145 120 170 118 Q195 120 195 151 Q195 176 186 184 Q170 193 154 184 Q145 176 145 151 Z"/>
@@ -160,9 +169,12 @@
 
             <!-- Sau bó hoa, chàng trai lấy hộp quà từ sau lưng và đưa ra -->
             <g class="drawn-gift-offer">
-              <path class="draw-line gift-arm-line" style="--d:13.0s;--dur:.55s"
-                    d="M190 221 Q214 230 235 247 Q251 260 270 266"/>
-              <ellipse class="draw-line" style="--d:13.45s;--dur:.2s" cx="272" cy="267" rx="7" ry="5"/>
+              <path class="draw-line gift-arm-line gift-arm-right" style="--d:12.85s;--dur:.55s"
+                    d="M190 221 Q220 226 252 240 Q286 256 334 266"/>
+              <ellipse class="draw-line" style="--d:13.3s;--dur:.2s" cx="336" cy="267" rx="7" ry="5"/>
+              <path class="draw-line gift-arm-line gift-arm-left" style="--d:12.92s;--dur:.58s"
+                    d="M145 218 Q168 224 190 241 Q224 269 270 276"/>
+              <ellipse class="draw-line" style="--d:13.38s;--dur:.2s" cx="271" cy="276" rx="7" ry="5"/>
               <g class="drawn-gift-box">
                 <rect class="draw-line" style="--d:13.2s;--dur:.45s" x="270" y="237" width="66" height="55" rx="5"/>
                 <path class="draw-line" style="--d:13.5s;--dur:.28s" d="M266 237 L340 237 L340 250 L266 250 Z"/>
@@ -170,6 +182,7 @@
                 <path class="draw-line gift-ribbon" style="--d:13.85s;--dur:.35s"
                       d="M302 237 Q285 226 289 216 Q299 215 303 232 Q307 215 317 216 Q321 227 302 237"/>
               </g>
+            </g>
             </g>
           </g>
 

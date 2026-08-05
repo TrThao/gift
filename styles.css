@@ -3918,6 +3918,20 @@ body[data-scene="memory"] .orb-b {
   box-shadow: 0 0 0 2px rgba(255, 180, 170, .2);
 }
 
+.code-pearls.is-error {
+  animation: codePearlsShake .38s ease;
+}
+
+.code-pearls.is-error span {
+  border-color: rgba(240, 120, 125, .72);
+  box-shadow: 0 0 18px rgba(220, 80, 95, .24);
+}
+
+@keyframes codePearlsShake {
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
 .pearl-digit {
   position: absolute;
   inset: 0;
@@ -4270,13 +4284,19 @@ body[data-scene="memory"] .orb-b {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity .9s ease, visibility .9s ease;
+  background: #000;
+  isolation: isolate;
+  transition: opacity .35s ease, visibility .35s ease;
 }
 
 .gift-cinematic.is-active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+
+.gift-cinematic.is-active.phase-fireworks {
+  transition: none;
 }
 
 .gift-cinematic__veil {
@@ -4287,7 +4307,7 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__veil.flash {
-  background: radial-gradient(circle at 50% 40%, rgba(255, 220, 200, .22), #000 65%);
+  background: #000;
 }
 
 .gift-cinematic.phase-bouquet .gift-cinematic__veil {
@@ -4449,6 +4469,11 @@ body[data-scene="memory"] .orb-b {
   transform: translate(0, 0);
 }
 
+.drawn-man-scale {
+  transform: scale(1.045);
+  transform-origin: 170px 456px;
+}
+
 .gift-cinematic__bouquet.is-playing .drawn-man-unit {
   animation: manWalk 1.9s cubic-bezier(.42, 0, .28, 1) 8.35s forwards;
 }
@@ -4518,48 +4543,76 @@ body[data-scene="memory"] .orb-b {
   transform-origin: 616px 220px;
 }
 
+.drawn-scene .drawn-woman-arm-support {
+  transform-origin: 558px 216px;
+}
+
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive {
-  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.6s forwards;
+  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.5s forwards;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-support {
+  animation: supportArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.55s forwards;
 }
 
 @keyframes receiveArm {
   0%   { transform: rotate(0); }
-  28%, 62% { transform: translate(-10px, -3px) rotate(10deg); }
-  100% { transform: translate(4px, 12px) rotate(-8deg); }
+  28% { transform: translate(-10px, -3px) rotate(10deg); }
+  62%, 100% { transform: translate(0, 0) rotate(0); }
 }
 
-/* Bó hoa được trao sang tay cô gái rồi cất nhẹ ra sau lưng. */
+@keyframes supportArm {
+  0%   { transform: rotate(0); }
+  32%  { transform: translate(-4px, -4px) rotate(-7deg); }
+  62%, 100% { transform: translate(0, 0) rotate(0); }
+}
+
+/* Bó hoa chuyển hẳn sang hai tay cô gái và ở lại đó. */
 .drawn-scene .drawn-bouquet {
   transform-origin: 250px 260px;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-bouquet {
-  animation: bouquetToBehind 1.75s cubic-bezier(.4, 0, .2, 1) 11.35s forwards;
+  animation: bouquetToWoman 1.45s cubic-bezier(.4, 0, .2, 1) 11.25s forwards;
 }
 
-@keyframes bouquetToBehind {
+@keyframes bouquetToWoman {
   0%   { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
-  42%  { opacity: 1; transform: translate(42px, -2px) rotate(5deg) scale(.96); }
-  78%  { opacity: .9; transform: translate(100px, 64px) rotate(24deg) scale(.82); }
-  100% { opacity: 0; transform: translate(116px, 78px) rotate(30deg) scale(.72); }
+  68%, 100% { opacity: 1; transform: translate(44px, -2px) rotate(5deg) scale(.96); }
 }
 
-/* Hộp quà đi từ sau lưng chàng trai ra phía trước sau khi hoa được cất. */
+/* Hộp quà nằm sau lưng, rồi được hai tay lấy ra và đưa về phía cô gái. */
+.drawn-scene .drawn-gift-behind {
+  opacity: 0;
+  transform-origin: 140px 265px;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-behind {
+  animation: giftBehindReveal 1.55s ease 11.45s forwards;
+}
+
+@keyframes giftBehindReveal {
+  0% { opacity: 0; transform: translate(-8px, 12px) rotate(10deg) scale(.82); }
+  25%, 58% { opacity: .9; transform: translate(0, 0) rotate(6deg) scale(.9); }
+  100% { opacity: 0; transform: translate(32px, -12px) rotate(0) scale(1); }
+}
+
 .drawn-scene .drawn-gift-offer {
   opacity: 0;
   transform-origin: 190px 222px;
-  transform: translate(-54px, 38px) rotate(12deg) scale(.8);
+  transform: translate(-88px, 34px) rotate(10deg) scale(.82);
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-offer {
-  animation: giftTakeOut 1.45s cubic-bezier(.22, 1, .36, 1) 12.7s forwards;
+  animation: giftTakeOut 1.85s cubic-bezier(.22, 1, .36, 1) 12.55s forwards;
 }
 
 @keyframes giftTakeOut {
-  0%   { opacity: 0; transform: translate(-54px, 38px) rotate(12deg) scale(.8); }
-  18%  { opacity: 1; }
-  70%  { opacity: 1; transform: translate(8px, -5px) rotate(-3deg) scale(1.04); }
-  100% { opacity: 1; transform: translate(12px, -3px) rotate(0) scale(1); }
+  0%   { opacity: 0; transform: translate(-88px, 34px) rotate(10deg) scale(.82); }
+  16%  { opacity: 1; }
+  52%  { opacity: 1; transform: translate(-28px, 30px) rotate(4deg) scale(.94); }
+  82%  { opacity: 1; transform: translate(8px, 48px) rotate(-2deg) scale(1.03); }
+  100% { opacity: 1; transform: translate(16px, 45px) rotate(0) scale(1); }
 }
 
 /* Má hồng cô gái — hiện nhẹ khi chàng trai đến gần */
@@ -4641,9 +4694,15 @@ body[data-scene="memory"] .orb-b {
 .gift-cinematic__handoff {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(24px, env(safe-area-inset-top))
+    20px
+    max(28px, env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 
 .gift-cinematic.phase-handoff .gift-cinematic__veil {
@@ -4654,30 +4713,55 @@ body[data-scene="memory"] .orb-b {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: min(52vh, 420px);
+  width: min(92vw, 460px);
+  height: min(62vh, 480px);
+  min-height: 330px;
 }
 
 .gift-handoff-box {
   position: relative;
+  width: clamp(220px, 42vw, 360px);
+  height: clamp(220px, 42vw, 360px);
   opacity: 0;
-  transform: scale(.62) translateY(48px);
-  filter: blur(6px);
-  transition:
-    opacity 2.4s cubic-bezier(.22, 1, .36, 1),
-    transform 2.6s cubic-bezier(.22, 1, .36, 1),
-    filter 2s ease;
+  transform: translateY(72px) scale(.12) rotate(-5deg);
+  filter: blur(12px) brightness(.72);
   animation: none;
+  will-change: transform, opacity, filter;
 }
 
 .gift-cinematic.is-revealing .gift-handoff-box {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  filter: blur(0);
-  animation: giftBreath 3.4s ease-in-out infinite;
+  animation:
+    giftHandoffArrive 2.8s cubic-bezier(.16, .86, .28, 1) forwards,
+    giftBreath 3.4s ease-in-out 2.85s infinite;
+}
+
+@keyframes giftHandoffArrive {
+  0% {
+    opacity: 0;
+    transform: translateY(72px) scale(.12) rotate(-5deg);
+    filter: blur(12px) brightness(.72);
+  }
+  18% {
+    opacity: .45;
+  }
+  64% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.06) rotate(1deg);
+    filter: blur(0) brightness(1.08);
+  }
+  82% {
+    transform: translateY(3px) scale(.98) rotate(0);
+    filter: blur(0) brightness(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+    filter: blur(0) brightness(1);
+  }
 }
 
 .gift-handoff-caption {
-  margin: 28px 0 0;
+  margin: -24px 0 0;
   color: rgba(255, 235, 220, .72);
   font-family: var(--display);
   font-size: clamp(20px, 3.8vw, 30px);
@@ -4685,7 +4769,7 @@ body[data-scene="memory"] .orb-b {
   letter-spacing: .03em;
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 1.4s ease .9s, transform 1.4s ease .9s;
+  transition: opacity 1s ease 1.55s, transform 1s ease 1.55s;
 }
 
 .gift-cinematic.is-revealing .gift-handoff-caption {
@@ -4701,9 +4785,33 @@ body[data-scene="memory"] .orb-b {
   .bouquet-caption {
     font-size: clamp(19px, 5.2vw, 24px);
   }
+
+  .gift-handoff-stage {
+    width: 100%;
+    height: min(58vh, 410px);
+    min-height: 300px;
+  }
+
+  .gift-handoff-box {
+    width: clamp(210px, 76vw, 310px);
+    height: clamp(210px, 76vw, 310px);
+  }
+
+  .gift-handoff-caption {
+    margin-top: -12px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .gift-cinematic.is-revealing .gift-handoff-box {
+    animation: giftHandoffReduced 1.2s ease-out forwards;
+  }
+
+  @keyframes giftHandoffReduced {
+    from { opacity: 0; transform: scale(.8); filter: none; }
+    to { opacity: 1; transform: scale(1); filter: none; }
+  }
+
   .gift-cinematic__bouquet.is-playing .drawn-scene .draw-line {
     animation: none !important;
     stroke-dashoffset: 0 !important;
@@ -4719,6 +4827,7 @@ body[data-scene="memory"] .orb-b {
   .gift-cinematic__bouquet.is-playing .man-leg-right,
   .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer,
   .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-support,
   .gift-cinematic__bouquet.is-playing .scene-halo {
     animation: none !important;
     opacity: 1 !important;
@@ -4732,13 +4841,19 @@ body[data-scene="memory"] .orb-b {
 
   .gift-cinematic__bouquet.is-playing .drawn-bouquet {
     animation: none !important;
+    opacity: 1 !important;
+    transform: translate(44px, -2px) rotate(5deg) scale(.96) !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .drawn-gift-behind {
+    animation: none !important;
     opacity: 0 !important;
   }
 
   .gift-cinematic__bouquet.is-playing .drawn-gift-offer {
     animation: none !important;
     opacity: 1 !important;
-    transform: translate(12px, -3px) !important;
+    transform: translate(16px, 45px) !important;
   }
 
   .gift-cinematic__bouquet.is-playing .bouquet-scene,
@@ -4763,5 +4878,436 @@ body[data-scene="memory"] .orb-b {
   .orb {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ═════════════════ V10 — canonical responsive layout ═════════════════ */
+:root {
+  --page-gutter: clamp(18px, 5vw, 72px);
+  --safe-top: max(22px, env(safe-area-inset-top));
+  --safe-bottom: max(26px, env(safe-area-inset-bottom));
+}
+
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    calc(var(--safe-top) + 24px)
+    var(--page-gutter)
+    calc(var(--safe-bottom) + 24px);
+}
+
+.wait-screen,
+.letter-screen,
+.memory-screen,
+.gift-screen,
+.success-screen {
+  overflow-x: clip;
+}
+
+.waiting-layout {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1.1fr) minmax(310px, .9fr);
+  gap: clamp(48px, 8vw, 120px);
+}
+
+.waiting-copy,
+.gift-copy {
+  min-width: 0;
+}
+
+.waiting-copy h1,
+.gift-copy h1,
+.memory-title,
+.success-screen h1 {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.letter-scene,
+.memory-wrap {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+
+.romantic-letter {
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+
+.star-map {
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+
+.gift-screen {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
+  align-items: center;
+  gap: clamp(42px, 8vw, 110px);
+}
+
+.gift-stage {
+  width: min(440px, 100%);
+  justify-self: center;
+}
+
+.success-screen {
+  align-items: center;
+  text-align: center;
+}
+
+.success-screen .lead {
+  max-width: 620px;
+}
+
+.success-actions {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* One balanced passcode system; overrides legacy V1–V9 rules. */
+.unlock-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    calc(var(--safe-top) + clamp(24px, 5vh, 58px))
+    var(--page-gutter)
+    calc(var(--safe-bottom) + clamp(24px, 5vh, 58px));
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+.unlock-scene {
+  width: min(430px, 100%);
+  margin: auto;
+  gap: clamp(18px, 3vh, 28px);
+}
+
+.unlock-screen .unlock-intro h1 {
+  font-size: clamp(34px, 7vw, 54px) !important;
+}
+
+.locket-panel {
+  width: 100%;
+  padding: clamp(20px, 4vw, 30px);
+  border-radius: clamp(22px, 5vw, 32px);
+}
+
+.unlock-screen .passcode {
+  width: 100%;
+}
+
+.code-pearls {
+  width: 100%;
+  gap: clamp(8px, 3vw, 13px);
+  margin-bottom: 18px;
+}
+
+.code-pearls span {
+  flex: 0 0 clamp(44px, 13vw, 50px);
+  width: clamp(44px, 13vw, 50px);
+  height: clamp(44px, 13vw, 50px);
+}
+
+.dial-ring,
+.dial-bottom {
+  grid-template-columns: repeat(3, clamp(50px, 14vw, 58px));
+  gap: clamp(9px, 3vw, 12px);
+}
+
+.dial-key,
+.dial-aux {
+  width: clamp(50px, 14vw, 58px);
+  height: clamp(50px, 14vw, 58px);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 900px) {
+  .screen {
+    padding-inline: clamp(20px, 6vw, 52px);
+  }
+
+  .topline {
+    padding-right: 52px;
+  }
+
+  .waiting-layout,
+  .gift-screen {
+    grid-template-columns: 1fr;
+  }
+
+  .waiting-layout {
+    align-content: center;
+    gap: clamp(34px, 7vh, 62px);
+    padding-block: clamp(64px, 10vh, 108px) 42px;
+  }
+
+  .waiting-copy,
+  .gift-copy {
+    max-width: 680px;
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .time-object,
+  .gift-stage,
+  .luxury-gift {
+    justify-self: center;
+  }
+
+  .gift-screen {
+    align-content: center;
+    gap: clamp(28px, 5vh, 52px);
+  }
+
+  .gift-copy .lead {
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --page-gutter: clamp(16px, 5vw, 22px);
+  }
+
+  .screen {
+    padding-top: calc(var(--safe-top) + 18px);
+    padding-bottom: calc(var(--safe-bottom) + 22px);
+  }
+
+  .topline {
+    font-size: 10px;
+    gap: 12px;
+    padding-right: 48px;
+  }
+
+  .kinetic-rail {
+    transform: rotate(-2deg) scale(.98);
+  }
+
+  .waiting-layout {
+    padding-block: clamp(54px, 9vh, 80px) 24px;
+  }
+
+  .waiting-copy h1,
+  .gift-copy h1,
+  .success-screen h1 {
+    font-size: clamp(38px, 12vw, 58px) !important;
+    line-height: 1.04;
+  }
+
+  .memory-title {
+    font-size: clamp(38px, 11vw, 54px);
+  }
+
+  .lead {
+    font-size: clamp(16px, 4.5vw, 19px);
+  }
+
+  .countdown-visual,
+  .time-ring {
+    width: min(68vw, 252px);
+    height: min(68vw, 252px);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .time-detail {
+    width: min(100%, 320px);
+    gap: 8px;
+  }
+
+  .time-pill {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
+  .letter-scene {
+    padding-top: 32px;
+  }
+
+  .cake {
+    transform: scale(.86);
+    transform-origin: center top;
+    margin-bottom: -34px;
+  }
+
+  .romantic-letter {
+    padding: 30px 20px;
+    border-radius: 20px;
+  }
+
+  .letter-content p {
+    font-size: clamp(17px, 4.8vw, 20px);
+    line-height: 1.68;
+  }
+
+  .star-map {
+    min-height: 330px;
+    height: 46vh;
+    max-height: 430px;
+  }
+
+  .star-guide,
+  .star-message {
+    font-size: 14px;
+  }
+
+  .gift-screen {
+    padding-top: calc(var(--safe-top) + 42px);
+  }
+
+  .gift-stage {
+    min-height: 330px;
+  }
+
+  .luxury-gift {
+    transform: scale(.88);
+    transform-origin: center;
+  }
+
+  .success-date {
+    margin-top: 32px;
+  }
+
+  .success-actions,
+  .success-actions .button {
+    width: 100%;
+  }
+
+  .success-actions .button {
+    min-width: 0;
+  }
+
+  .unlock-screen {
+    place-items: start center;
+    padding-top: calc(var(--safe-top) + 20px);
+  }
+
+  .unlock-scene {
+    gap: 16px;
+  }
+
+  .unlock-screen .unlock-intro {
+    padding-top: 40px;
+  }
+
+  .unlock-screen .unlock-intro h1 {
+    font-size: clamp(32px, 10vw, 44px) !important;
+  }
+
+  .unlock-intro .lead {
+    margin-top: 6px;
+  }
+
+  .locket-panel {
+    padding: 18px 16px 20px;
+  }
+
+  .locket-lock {
+    margin-bottom: 10px;
+  }
+
+  .passcode-prompt {
+    margin-bottom: 12px;
+  }
+
+  .unlock-screen .clue-button {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 350px), (max-height: 640px) {
+  .unlock-screen {
+    padding-top: calc(var(--safe-top) + 10px);
+  }
+
+  .unlock-scene {
+    gap: 10px;
+  }
+
+  .unlock-intro .lead {
+    display: none;
+  }
+
+  .locket-panel {
+    padding-block: 14px 16px;
+  }
+
+  .locket-lock {
+    transform: scale(.86);
+    margin-bottom: 4px;
+  }
+
+  .code-pearls {
+    margin-bottom: 10px;
+  }
+
+  .dial-ring {
+    margin-bottom: 7px;
+  }
+}
+
+@media (max-height: 820px) {
+  .unlock-screen {
+    padding-top: calc(var(--safe-top) + 10px);
+    padding-bottom: calc(var(--safe-bottom) + 12px);
+  }
+
+  .unlock-scene {
+    gap: 12px;
+  }
+
+  .unlock-screen .unlock-intro h1 {
+    font-size: clamp(30px, 5.5vw, 42px) !important;
+  }
+
+  .unlock-intro .lead {
+    margin-top: 4px;
+    font-size: 17px;
+  }
+
+  .locket-panel {
+    padding-block: 15px 17px;
+  }
+
+  .locket-lock {
+    height: 44px;
+    margin-bottom: 6px;
+    transform: scale(.88);
+  }
+
+  .passcode-prompt {
+    margin-bottom: 9px;
+  }
+
+  .code-pearls {
+    margin-bottom: 10px;
+  }
+
+  .unlock-screen .clue-button {
+    margin-bottom: 9px;
+    padding-block: 6px;
+  }
+
+  .dial-ring {
+    margin-bottom: 7px;
+  }
+
+  .dial-ring,
+  .dial-bottom {
+    grid-template-columns: repeat(3, 50px);
+    gap: 8px 10px;
+  }
+
+  .dial-key,
+  .dial-aux {
+    width: 50px;
+    height: 50px;
   }
 }
