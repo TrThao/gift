@@ -406,8 +406,8 @@ function runCinematicFireworkShow() {
 }
 
 let giftCinematicRunning = false;
-const BOUQUET_SCENE_MS = 26500;
-const HANDOFF_EFFECT_PAUSE_MS = 4500;
+const BOUQUET_SCENE_MS = 26000;
+const HANDOFF_EFFECT_PAUSE_MS = 4200;
 const initializedDrawnScenes = new WeakSet();
 
 /* Đo chiều dài thật của từng nét vẽ để hiệu ứng "vẽ tay" chạy đúng —
@@ -562,10 +562,29 @@ async function playGiftGivingCinematic() {
   spawnPetals(28);
 
   await sleep(prefersReducedMotion ? 12000 : BOUQUET_SCENE_MS);
-  playSfx("sparkle", { volume: 0.48 });
-  spawnPetals(22);
-  spawnSparkleBurst(window.innerWidth / 2, window.innerHeight * 0.48, 16);
-  await sleep(prefersReducedMotion ? 900 : HANDOFF_EFFECT_PAUSE_MS);
+
+  if (!prefersReducedMotion) {
+    // Hiệu ứng "đọng lại" — sparkle + cánh hoa rơi thêm vài vòng trước khi chuyển màn
+    const lingerTicks = [0, 900, 1900, 2900];
+    lingerTicks.forEach((delay, idx) => {
+      setTimeout(() => {
+        spawnPetals(idx === 0 ? 24 : 16);
+        spawnSparkleBurst(
+          window.innerWidth / 2,
+          window.innerHeight * (0.42 + Math.random() * 0.12),
+          idx === 0 ? 18 : 12
+        );
+        if (idx === 0 || idx === 2) {
+          playSfx("sparkle", { volume: idx === 0 ? 0.5 : 0.36 });
+        }
+      }, delay);
+    });
+    await sleep(HANDOFF_EFFECT_PAUSE_MS);
+  } else {
+    playSfx("sparkle", { volume: 0.48 });
+    spawnPetals(18);
+    await sleep(900);
+  }
 
   await playGiftHandoffReveal();
   giftCinematicRunning = false;
@@ -851,6 +870,15 @@ const SFX_FILES = {
   whoosh: "music/whoosh.wav"
 };
 const sfxLoadPromises = new Map();
+const sfxPrefetch = {};
+
+/* Bắt đầu tải file WAV ngay khi script chạy — không cần đợi user tap.
+   ArrayBuffer sẽ được cache sẵn, chỉ decode lúc unlock audio. */
+Object.entries(SFX_FILES).forEach(([name, url]) => {
+  sfxPrefetch[name] = fetch(url)
+    .then(res => (res.ok ? res.arrayBuffer() : null))
+    .catch(() => null);
+});
 let audioCtx = null;
 let sfxMasterGain = null;
 let sfxCompressor = null;
@@ -970,6 +998,20 @@ function buildSynthFallback(name) {
   return sfxBuffers[name];
 }
 
+function decodeAudioDataSafe(ctx, arrayBuffer) {
+  // Safari cũ chỉ hỗ trợ callback API cho decodeAudioData
+  return new Promise((resolve, reject) => {
+    try {
+      const result = ctx.decodeAudioData(arrayBuffer, resolve, reject);
+      if (result && typeof result.then === "function") {
+        result.then(resolve, reject);
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 async function loadSfxFile(name) {
   if (sfxBuffers[name]) return sfxBuffers[name];
   if (sfxLoadPromises.has(name)) return sfxLoadPromises.get(name);
@@ -980,10 +1022,17 @@ async function loadSfxFile(name) {
   const promise = (async () => {
     try {
       const ctx = getAudioCtx();
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`SFX fetch failed: ${name}`);
-      const data = await res.arrayBuffer();
-      const buffer = await ctx.decodeAudioData(data);
+      let data = null;
+      if (sfxPrefetch[name]) {
+        const prefetched = await sfxPrefetch[name];
+        if (prefetched) data = prefetched.slice(0); // decodeAudioData transfers/consumes ArrayBuffer
+      }
+      if (!data) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`SFX fetch failed: ${name}`);
+        data = await res.arrayBuffer();
+      }
+      const buffer = await decodeAudioDataSafe(ctx, data);
       sfxBuffers[name] = buffer;
       return buffer;
     } catch (_) {
@@ -1016,20 +1065,53 @@ function playSfxBuffer(ctx, buffer, { volume = 0.55, rate = 1, when = 0 } = {}) 
 
 function ensureAudio() {
   const ctx = getAudioCtx();
-  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  if (ctx.state === "suspended" || ctx.state === "interrupted") {
+    ctx.resume().catch(() => {});
+  }
   return ctx;
 }
 
-function activateAudioFromFirstInteraction() {
-  ensureAudio();
-  preloadSfxAssets();
-  unlockAmbientFromGesture();
-  document.removeEventListener("pointerdown", activateAudioFromFirstInteraction);
-  document.removeEventListener("keydown", activateAudioFromFirstInteraction);
+let audioIosUnlocked = false;
+
+/* iOS bắt buộc phải phát 1 buffer trong user gesture để mở khóa hoàn toàn.
+   Chỉ gọi ctx.resume() thôi là chưa đủ trên iPhone. */
+function unlockAudioForIos() {
+  if (audioIosUnlocked) return;
+  const ctx = getAudioCtx();
+  try {
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(sfxMasterGain || ctx.destination);
+    source.start(0);
+    audioIosUnlocked = true;
+  } catch (_) {}
 }
 
-document.addEventListener("pointerdown", activateAudioFromFirstInteraction, { passive: true });
-document.addEventListener("keydown", activateAudioFromFirstInteraction, { passive: true });
+function handleAudioGesture() {
+  ensureAudio();
+  unlockAudioForIos();
+  preloadSfxAssets();
+  unlockAmbientFromGesture();
+}
+
+document.addEventListener("pointerdown", handleAudioGesture, { passive: true });
+document.addEventListener("touchstart", handleAudioGesture, { passive: true });
+document.addEventListener("keydown", handleAudioGesture, { passive: true });
+
+/* iOS suspend AudioContext khi tab lock/background — resume khi quay lại */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && audioCtx &&
+      (audioCtx.state === "suspended" || audioCtx.state === "interrupted")) {
+    audioCtx.resume().catch(() => {});
+  }
+});
+
+window.addEventListener("pageshow", () => {
+  if (audioCtx && (audioCtx.state === "suspended" || audioCtx.state === "interrupted")) {
+    audioCtx.resume().catch(() => {});
+  }
+});
 
 function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
   try {
@@ -1042,15 +1124,14 @@ function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
       return;
     }
 
-    if (SFX_FILES[name]) {
-      loadSfxFile(name).then(loaded => {
-        if (loaded) playSfxBuffer(ctx, loaded, opts);
-      });
-      return;
-    }
+    // Nếu chưa có buffer từ .wav, chạy synth ngay để không "mất tiếng"
+    // (đặc biệt quan trọng trên iOS lần đầu, khi file chưa decode xong).
+    const synth = buildSynthFallback(name);
+    if (synth) playSfxBuffer(ctx, synth, opts);
 
-    const fallback = buildSynthFallback(name);
-    if (fallback) playSfxBuffer(ctx, fallback, opts);
+    if (SFX_FILES[name]) {
+      loadSfxFile(name); // nạp sẵn cho lần sau
+    }
   } catch (_) {}
 }
 

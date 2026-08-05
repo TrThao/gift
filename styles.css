@@ -4534,17 +4534,17 @@ body[data-scene="memory"] .orb-b {
 .gift-cinematic__bouquet.is-playing .drawn-man-left-arm {
   animation:
     leftArmWalk .68s ease-in-out 8.35s 4,
-    leftArmReachBack 1.4s ease 17.8s forwards,
-    leftArmHoldGift 2.4s cubic-bezier(.34, 1.05, .64, 1) 19.4s forwards;
+    leftArmReachBack 1.6s cubic-bezier(.5, 0, .3, 1) 19s forwards,
+    leftArmHoldGift 2.6s cubic-bezier(.34, 1.05, .64, 1) 20.8s forwards;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer {
   animation:
     rightArmWalk .68s ease-in-out 8.48s 4,
     armOfferFlower 2.7s cubic-bezier(.34, 1.05, .64, 1) 11.5s forwards,
-    armRetractAfterFlower 1.4s ease 16s forwards,
-    armReachBack 1.4s ease 17.8s forwards,
-    armHoldGift 2.4s cubic-bezier(.34, 1.05, .64, 1) 19.4s forwards;
+    armRetractAfterFlower 1.7s cubic-bezier(.5, 0, .3, 1) 17.1s forwards,
+    armReachBack 1.6s cubic-bezier(.5, 0, .3, 1) 19s forwards,
+    armHoldGift 2.6s cubic-bezier(.34, 1.05, .64, 1) 20.8s forwards;
 }
 
 @keyframes legSwingLeft {
@@ -4569,13 +4569,14 @@ body[data-scene="memory"] .orb-b {
 
 @keyframes leftArmReachBack {
   0%   { transform: rotate(0deg); }
-  100% { transform: translate(-8px, -4px) rotate(-16deg); }
+  100% { transform: translate(-14px, -8px) rotate(-22deg); }
 }
 
 @keyframes leftArmHoldGift {
-  0%   { transform: translate(-8px, -4px) rotate(-16deg); }
-  40%  { transform: translate(2px, 4px) rotate(-4deg); }
-  100% { transform: translate(18px, 14px) rotate(8deg); }
+  0%   { transform: translate(-14px, -8px) rotate(-22deg); }
+  35%  { transform: translate(36px, -22px) rotate(6deg); }
+  70%  { transform: translate(96px, -38px) rotate(14deg); }
+  100% { transform: translate(128px, -44px) rotate(16deg); }
 }
 
 .drawn-scene .drawn-arm-offer {
@@ -4595,13 +4596,13 @@ body[data-scene="memory"] .orb-b {
 
 @keyframes armReachBack {
   0%   { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(-6px, -5px) rotate(-12deg); }
+  100% { transform: translate(-12px, -6px) rotate(-14deg); }
 }
 
 @keyframes armHoldGift {
-  0%   { transform: translate(-6px, -5px) rotate(-12deg); }
-  40%  { transform: translate(8px, 4px) rotate(0deg); }
-  100% { transform: translate(24px, 14px) rotate(10deg); }
+  0%   { transform: translate(-12px, -6px) rotate(-14deg); }
+  40%  { transform: translate(22px, 4px) rotate(2deg); }
+  100% { transform: translate(58px, 10px) rotate(10deg); }
 }
 
 /* Cô gái vươn tay đón hoa: xoay theo chiều kim đồng hồ quanh vai
@@ -4615,23 +4616,25 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive {
-  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 12.1s forwards;
+  animation: receiveArm 3.2s cubic-bezier(.34, 1.05, .64, 1) 12.6s forwards;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-support {
-  animation: supportArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 12.15s forwards;
+  animation: supportArm 3.2s cubic-bezier(.34, 1.05, .64, 1) 12.7s forwards;
 }
 
 @keyframes receiveArm {
   0%   { transform: rotate(0); }
-  28%  { transform: translate(-10px, -3px) rotate(10deg); }
-  62%, 100% { transform: translate(-5px, 1px) rotate(5deg); }
+  28%  { transform: translate(-12px, -4px) rotate(12deg); }
+  55%  { transform: translate(-9px, -1px) rotate(8deg); }
+  100% { transform: translate(-6px, 2px) rotate(6deg); }
 }
 
 @keyframes supportArm {
   0%   { transform: rotate(0); }
-  32%  { transform: translate(-4px, -4px) rotate(-7deg); }
-  62%, 100% { transform: translate(1px, -1px) rotate(-3deg); }
+  32%  { transform: translate(-5px, -5px) rotate(-9deg); }
+  55%  { transform: translate(-2px, -3px) rotate(-5deg); }
+  100% { transform: translate(0, -1px) rotate(-3deg); }
 }
 
 /* Bó hoa: đứng yên trên tay nam → theo tay đưa ra → sang tay nữ */
@@ -4642,18 +4645,19 @@ body[data-scene="memory"] .orb-b {
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-bouquet {
   animation:
     bouquetFollowArm 2.7s cubic-bezier(.34, 1.05, .64, 1) 11.5s forwards,
-    bouquetToWoman 2.2s cubic-bezier(.4, 0, .2, 1) 14.4s forwards;
+    bouquetToWoman 2.6s cubic-bezier(.4, 0, .2, 1) 14.3s forwards;
 }
 
 @keyframes bouquetFollowArm {
   0%   { transform: translate(0, 0) rotate(0deg); }
   35%  { transform: translate(18px, -5px) rotate(-4deg); }
-  62%, 100% { transform: translate(20px, -6px) rotate(-5deg); }
+  62%, 100% { transform: translate(22px, -7px) rotate(-6deg); }
 }
 
 @keyframes bouquetToWoman {
-  0%   { opacity: 1; transform: translate(20px, -6px) rotate(-5deg) scale(1); }
-  68%, 100% { opacity: 1; transform: translate(64px, -2px) rotate(4deg) scale(.96); }
+  0%   { opacity: 1; transform: translate(22px, -7px) rotate(-6deg) scale(1); }
+  55%  { opacity: 1; transform: translate(46px, -10px) rotate(0deg) scale(.98); }
+  100% { opacity: 1; transform: translate(66px, -4px) rotate(6deg) scale(.94); }
 }
 
 /* Hộp quà — một khối, lấy từ sau lưng theo vòng cung tới giữa hai tay */
@@ -4664,15 +4668,15 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-carry {
-  animation: giftCarryPresent 3.4s cubic-bezier(.22, 1, .36, 1) 19s forwards;
+  animation: giftCarryPresent 3.8s cubic-bezier(.22, 1, .36, 1) 19.8s forwards;
 }
 
 @keyframes giftCarryPresent {
   0%   { opacity: 0; transform: translate(-142px, 10px) rotate(10deg) scale(.86); }
-  12%  { opacity: .75; transform: translate(-118px, 8px) rotate(8deg) scale(.88); }
-  32%  { opacity: 1; transform: translate(-82px, 12px) rotate(6deg) scale(.9); }
-  55%  { opacity: 1; transform: translate(-42px, 10px) rotate(3deg) scale(.95); }
-  78%  { opacity: 1; transform: translate(-12px, 8px) rotate(1deg) scale(.98); }
+  10%  { opacity: .55; transform: translate(-128px, 6px) rotate(9deg) scale(.86); }
+  25%  { opacity: 1; transform: translate(-98px, 10px) rotate(7deg) scale(.88); }
+  50%  { opacity: 1; transform: translate(-58px, 12px) rotate(4deg) scale(.92); }
+  75%  { opacity: 1; transform: translate(-20px, 8px) rotate(2deg) scale(.97); }
   100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
 }
 
@@ -4701,15 +4705,15 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h1 {
-  animation: heartFloatNew 3s ease 16.8s infinite;
+  animation: heartFloatNew 3s ease 16.6s 1 forwards;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h2 {
-  animation: heartFloatNew 3.2s ease 17.2s infinite;
+  animation: heartFloatNew 3.2s ease 17s 1 forwards;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h3 {
-  animation: heartFloatNew 3.1s ease 17.6s infinite;
+  animation: heartFloatNew 3.1s ease 17.4s 1 forwards;
 }
 
 @keyframes heartFloatNew {
@@ -4732,7 +4736,7 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .bouquet-caption {
-  animation: captionIn 1.4s ease 23.4s forwards;
+  animation: captionIn 1.4s ease 24.2s forwards;
 }
 
 @keyframes captionIn {
