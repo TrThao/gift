@@ -406,6 +406,8 @@ function runCinematicFireworkShow() {
 }
 
 let giftCinematicRunning = false;
+const BOUQUET_SCENE_MS = 26500;
+const HANDOFF_EFFECT_PAUSE_MS = 4500;
 const initializedDrawnScenes = new WeakSet();
 
 /* Đo chiều dài thật của từng nét vẽ để hiệu ứng "vẽ tay" chạy đúng —
@@ -444,10 +446,42 @@ function resetGiftCinematic() {
   handoff?.classList.remove("is-revealing");
   handoff?.setAttribute("aria-hidden", "true");
   continueBtn?.classList.remove("is-visible");
+  document.getElementById("giftHandoffBox")?.classList.remove("is-tapped");
   veil?.classList.remove("flash");
   fxCanvas?.classList.remove("above");
   clearFxParticles();
   resetGiftFireworkFlash();
+}
+
+async function waitForHandoffTap() {
+  const box = document.getElementById("giftHandoffBox");
+  if (!box) return;
+
+  await new Promise(resolve => {
+    const cleanup = () => {
+      box.removeEventListener("click", onClick);
+      box.removeEventListener("keydown", onKey);
+    };
+
+    const finish = () => {
+      cleanup();
+      box.classList.add("is-tapped");
+      playSfx("sparkle", { volume: 0.52 });
+      spawnSparkleBurst(window.innerWidth / 2, window.innerHeight * 0.46, 18);
+      vibrate([28, 36, 28]);
+      setTimeout(resolve, 420);
+    };
+
+    const onClick = () => finish();
+    const onKey = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      finish();
+    };
+
+    box.addEventListener("click", onClick);
+    box.addEventListener("keydown", onKey);
+  });
 }
 
 async function playGiftHandoffReveal() {
@@ -474,7 +508,7 @@ async function playGiftHandoffReveal() {
   cinematic?.classList.add("is-revealing");
   handoff?.classList.add("is-revealing");
 
-  await sleep(prefersReducedMotion ? 1700 : 3900);
+  await waitForHandoffTap();
 
   resetGiftCinematic();
   passcode = "";
@@ -527,8 +561,11 @@ async function playGiftGivingCinematic() {
   playSfx("sparkle", { volume: 0.42 });
   spawnPetals(28);
 
-  await sleep(16000);
-  await sleep(900);
+  await sleep(prefersReducedMotion ? 12000 : BOUQUET_SCENE_MS);
+  playSfx("sparkle", { volume: 0.48 });
+  spawnPetals(22);
+  spawnSparkleBurst(window.innerWidth / 2, window.innerHeight * 0.48, 16);
+  await sleep(prefersReducedMotion ? 900 : HANDOFF_EFFECT_PAUSE_MS);
 
   await playGiftHandoffReveal();
   giftCinematicRunning = false;
@@ -801,8 +838,19 @@ if (audioToggleBtn) {
   });
 }
 
-/* —— Soft synthesized SFX via Web Audio —— */
+/* —— SFX: ưu tiên file .wav, synth chỉ là fallback —— */
 const sfxBuffers = {};
+const SFX_FILES = {
+  blow: "music/blow.wav",
+  click: "music/click.wav",
+  firework: "music/firework.wav",
+  pulse: "music/pulse.wav",
+  sparkle: "music/sparkle.wav",
+  ting: "music/ting.wav",
+  type: "music/type.wav",
+  whoosh: "music/whoosh.wav"
+};
+const sfxLoadPromises = new Map();
 let audioCtx = null;
 let sfxMasterGain = null;
 let sfxCompressor = null;
@@ -922,6 +970,50 @@ function buildSynthFallback(name) {
   return sfxBuffers[name];
 }
 
+async function loadSfxFile(name) {
+  if (sfxBuffers[name]) return sfxBuffers[name];
+  if (sfxLoadPromises.has(name)) return sfxLoadPromises.get(name);
+
+  const url = SFX_FILES[name];
+  if (!url) return buildSynthFallback(name);
+
+  const promise = (async () => {
+    try {
+      const ctx = getAudioCtx();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`SFX fetch failed: ${name}`);
+      const data = await res.arrayBuffer();
+      const buffer = await ctx.decodeAudioData(data);
+      sfxBuffers[name] = buffer;
+      return buffer;
+    } catch (_) {
+      return buildSynthFallback(name);
+    } finally {
+      sfxLoadPromises.delete(name);
+    }
+  })();
+
+  sfxLoadPromises.set(name, promise);
+  return promise;
+}
+
+function preloadSfxAssets() {
+  Object.keys(SFX_FILES).forEach(name => {
+    loadSfxFile(name);
+  });
+}
+
+function playSfxBuffer(ctx, buffer, { volume = 0.55, rate = 1, when = 0 } = {}) {
+  const source = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  source.buffer = buffer;
+  source.playbackRate.value = rate;
+  gain.gain.value = Math.max(0, Math.min(1, volume));
+  source.connect(gain);
+  gain.connect(sfxMasterGain || ctx.destination);
+  source.start(Math.max(0, ctx.currentTime + when));
+}
+
 function ensureAudio() {
   const ctx = getAudioCtx();
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -930,6 +1022,7 @@ function ensureAudio() {
 
 function activateAudioFromFirstInteraction() {
   ensureAudio();
+  preloadSfxAssets();
   unlockAmbientFromGesture();
   document.removeEventListener("pointerdown", activateAudioFromFirstInteraction);
   document.removeEventListener("keydown", activateAudioFromFirstInteraction);
@@ -941,20 +1034,23 @@ document.addEventListener("keydown", activateAudioFromFirstInteraction, { passiv
 function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
   try {
     const ctx = ensureAudio();
-    let buffer = sfxBuffers[name];
-    if (!buffer) {
-      buffer = buildSynthFallback(name);
-    }
-    if (!buffer) return;
+    const opts = { volume, rate, when };
+    const buffer = sfxBuffers[name];
 
-    const source = ctx.createBufferSource();
-    const gain = ctx.createGain();
-    source.buffer = buffer;
-    source.playbackRate.value = rate;
-    gain.gain.value = Math.max(0, Math.min(1, volume));
-    source.connect(gain);
-    gain.connect(sfxMasterGain || ctx.destination);
-    source.start(Math.max(0, ctx.currentTime + when));
+    if (buffer) {
+      playSfxBuffer(ctx, buffer, opts);
+      return;
+    }
+
+    if (SFX_FILES[name]) {
+      loadSfxFile(name).then(loaded => {
+        if (loaded) playSfxBuffer(ctx, loaded, opts);
+      });
+      return;
+    }
+
+    const fallback = buildSynthFallback(name);
+    if (fallback) playSfxBuffer(ctx, fallback, opts);
   } catch (_) {}
 }
 
@@ -1051,7 +1147,7 @@ function blowCandle(idx, candleEl) {
   candleEl.disabled = true;
 
   // Blow SFX + tiny sparkle at flame
-  playSfx("blow", { volume: 0.58, rate: 0.94 + Math.random() * 0.12 });
+  playSfx("blow", { volume: 0.72, rate: 0.98 + Math.random() * 0.08 });
   vibrate(20);
   const rect = candleEl.getBoundingClientRect();
   spawnSparkleBurst(rect.left + rect.width / 2, rect.top + 8, 6);

@@ -4475,19 +4475,34 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-man-unit {
-  animation: manWalk 1.9s cubic-bezier(.42, 0, .28, 1) 8.35s forwards;
+  animation: manWalk 2.85s cubic-bezier(.45, 0, .25, 1) 8.35s forwards;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-man-scale {
+  animation: manWalkSway 2.85s ease-in-out 8.35s forwards;
 }
 
 @keyframes manWalk {
   0%   { transform: translate(0, 0); }
-  12%  { transform: translate(30px, -3px); }
-  25%  { transform: translate(60px, 0); }
-  37%  { transform: translate(90px, -3px); }
-  50%  { transform: translate(120px, 0); }
-  62%  { transform: translate(150px, -3px); }
-  75%  { transform: translate(180px, 0); }
-  87%  { transform: translate(212px, -2px); }
+  8%   { transform: translate(22px, -1px); }
+  16%  { transform: translate(44px, 0); }
+  24%  { transform: translate(66px, -2px); }
+  32%  { transform: translate(88px, 0); }
+  40%  { transform: translate(110px, -2px); }
+  48%  { transform: translate(132px, 0); }
+  56%  { transform: translate(154px, -1px); }
+  64%  { transform: translate(176px, 0); }
+  72%  { transform: translate(198px, -1px); }
+  80%  { transform: translate(218px, 0); }
+  88%  { transform: translate(232px, -1px); }
   100% { transform: translate(245px, 0); }
+}
+
+@keyframes manWalkSway {
+  0%, 100% { transform: scale(1.045) rotate(0deg); }
+  25%      { transform: scale(1.045) rotate(.8deg); }
+  50%      { transform: scale(1.045) rotate(0deg); }
+  75%      { transform: scale(1.045) rotate(-.8deg); }
 }
 
 @keyframes figureIdle {
@@ -4495,7 +4510,7 @@ body[data-scene="memory"] .orb-b {
   50%      { transform: translateY(-1.6px); }
 }
 
-/* Bước chân đung đưa khi đi */
+/* Bước chân + đung đưa tay khi đi */
 .drawn-scene .man-leg-left {
   transform-origin: 154px 322px;
 }
@@ -4504,37 +4519,89 @@ body[data-scene="memory"] .orb-b {
   transform-origin: 186px 322px;
 }
 
+.drawn-scene .drawn-man-left-arm {
+  transform-origin: 151px 217px;
+}
+
 .gift-cinematic__bouquet.is-playing .man-leg-left {
-  animation: legSwingLeft .48s ease-in-out 8.35s 4;
+  animation: legSwingLeft .68s ease-in-out 8.35s 4;
 }
 
 .gift-cinematic__bouquet.is-playing .man-leg-right {
-  animation: legSwingRight .48s ease-in-out 8.59s 4;
+  animation: legSwingRight .68s ease-in-out 8.62s 4;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-man-left-arm {
+  animation:
+    leftArmWalk .68s ease-in-out 8.35s 4,
+    leftArmReachBack 1.4s ease 17.8s forwards,
+    leftArmHoldGift 2.4s cubic-bezier(.34, 1.05, .64, 1) 19.4s forwards;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer {
+  animation:
+    rightArmWalk .68s ease-in-out 8.48s 4,
+    armOfferFlower 2.7s cubic-bezier(.34, 1.05, .64, 1) 11.5s forwards,
+    armRetractAfterFlower 1.4s ease 16s forwards,
+    armReachBack 1.4s ease 17.8s forwards,
+    armHoldGift 2.4s cubic-bezier(.34, 1.05, .64, 1) 19.4s forwards;
 }
 
 @keyframes legSwingLeft {
-  0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(14deg); }
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(16deg) translateY(-1px); }
 }
 
 @keyframes legSwingRight {
-  0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(-14deg); }
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(-16deg) translateY(-1px); }
 }
 
-/* Tay phải đưa hoa nghiêng nhẹ về phía cô gái */
+@keyframes leftArmWalk {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-10deg); }
+}
+
+@keyframes rightArmWalk {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(10deg); }
+}
+
+@keyframes leftArmReachBack {
+  0%   { transform: rotate(0deg); }
+  100% { transform: translate(-8px, -4px) rotate(-16deg); }
+}
+
+@keyframes leftArmHoldGift {
+  0%   { transform: translate(-8px, -4px) rotate(-16deg); }
+  40%  { transform: translate(2px, 4px) rotate(-4deg); }
+  100% { transform: translate(18px, 14px) rotate(8deg); }
+}
+
 .drawn-scene .drawn-arm-offer {
   transform-origin: 191px 218px;
 }
 
-.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer {
-  animation: armOffer 2.7s cubic-bezier(.34, 1.05, .64, 1) 10.35s forwards;
+@keyframes armOfferFlower {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  35%  { transform: translate(18px, -5px) rotate(-4deg); }
+  62%, 100% { transform: translate(20px, -6px) rotate(-5deg); }
 }
 
-@keyframes armOffer {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  35%, 62% { transform: translate(20px, -6px) rotate(-5deg); }
+@keyframes armRetractAfterFlower {
+  0%   { transform: translate(20px, -6px) rotate(-5deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes armReachBack {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-6px, -5px) rotate(-12deg); }
+}
+
+@keyframes armHoldGift {
+  0%   { transform: translate(-6px, -5px) rotate(-12deg); }
+  40%  { transform: translate(8px, 4px) rotate(0deg); }
+  100% { transform: translate(24px, 14px) rotate(10deg); }
 }
 
 /* Cô gái vươn tay đón hoa: xoay theo chiều kim đồng hồ quanh vai
@@ -4548,71 +4615,65 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive {
-  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.5s forwards;
+  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 12.1s forwards;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-support {
-  animation: supportArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.55s forwards;
+  animation: supportArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 12.15s forwards;
 }
 
 @keyframes receiveArm {
   0%   { transform: rotate(0); }
-  28% { transform: translate(-10px, -3px) rotate(10deg); }
-  62%, 100% { transform: translate(0, 0) rotate(0); }
+  28%  { transform: translate(-10px, -3px) rotate(10deg); }
+  62%, 100% { transform: translate(-5px, 1px) rotate(5deg); }
 }
 
 @keyframes supportArm {
   0%   { transform: rotate(0); }
   32%  { transform: translate(-4px, -4px) rotate(-7deg); }
-  62%, 100% { transform: translate(0, 0) rotate(0); }
+  62%, 100% { transform: translate(1px, -1px) rotate(-3deg); }
 }
 
-/* Bó hoa chuyển hẳn sang hai tay cô gái và ở lại đó. */
+/* Bó hoa: đứng yên trên tay nam → theo tay đưa ra → sang tay nữ */
 .drawn-scene .drawn-bouquet {
   transform-origin: 250px 260px;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-bouquet {
-  animation: bouquetToWoman 1.45s cubic-bezier(.4, 0, .2, 1) 11.25s forwards;
+  animation:
+    bouquetFollowArm 2.7s cubic-bezier(.34, 1.05, .64, 1) 11.5s forwards,
+    bouquetToWoman 2.2s cubic-bezier(.4, 0, .2, 1) 14.4s forwards;
+}
+
+@keyframes bouquetFollowArm {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  35%  { transform: translate(18px, -5px) rotate(-4deg); }
+  62%, 100% { transform: translate(20px, -6px) rotate(-5deg); }
 }
 
 @keyframes bouquetToWoman {
-  0%   { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
-  68%, 100% { opacity: 1; transform: translate(44px, -2px) rotate(5deg) scale(.96); }
+  0%   { opacity: 1; transform: translate(20px, -6px) rotate(-5deg) scale(1); }
+  68%, 100% { opacity: 1; transform: translate(64px, -2px) rotate(4deg) scale(.96); }
 }
 
-/* Hộp quà nằm sau lưng, rồi được hai tay lấy ra và đưa về phía cô gái. */
-.drawn-scene .drawn-gift-behind {
+/* Hộp quà — một khối, lấy từ sau lưng theo vòng cung tới giữa hai tay */
+.drawn-scene .drawn-gift-carry {
   opacity: 0;
-  transform-origin: 140px 265px;
+  transform-origin: 281px 275px;
+  transform: translate(-142px, 10px) rotate(10deg) scale(.86);
 }
 
-.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-behind {
-  animation: giftBehindReveal 1.55s ease 11.45s forwards;
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-carry {
+  animation: giftCarryPresent 3.4s cubic-bezier(.22, 1, .36, 1) 19s forwards;
 }
 
-@keyframes giftBehindReveal {
-  0% { opacity: 0; transform: translate(-8px, 12px) rotate(10deg) scale(.82); }
-  25%, 58% { opacity: .9; transform: translate(0, 0) rotate(6deg) scale(.9); }
-  100% { opacity: 0; transform: translate(32px, -12px) rotate(0) scale(1); }
-}
-
-.drawn-scene .drawn-gift-offer {
-  opacity: 0;
-  transform-origin: 190px 222px;
-  transform: translate(-88px, 34px) rotate(10deg) scale(.82);
-}
-
-.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-offer {
-  animation: giftTakeOut 1.85s cubic-bezier(.22, 1, .36, 1) 12.55s forwards;
-}
-
-@keyframes giftTakeOut {
-  0%   { opacity: 0; transform: translate(-88px, 34px) rotate(10deg) scale(.82); }
-  16%  { opacity: 1; }
-  52%  { opacity: 1; transform: translate(-28px, 30px) rotate(4deg) scale(.94); }
-  82%  { opacity: 1; transform: translate(8px, 48px) rotate(-2deg) scale(1.03); }
-  100% { opacity: 1; transform: translate(16px, 45px) rotate(0) scale(1); }
+@keyframes giftCarryPresent {
+  0%   { opacity: 0; transform: translate(-142px, 10px) rotate(10deg) scale(.86); }
+  12%  { opacity: .75; transform: translate(-118px, 8px) rotate(8deg) scale(.88); }
+  32%  { opacity: 1; transform: translate(-82px, 12px) rotate(6deg) scale(.9); }
+  55%  { opacity: 1; transform: translate(-42px, 10px) rotate(3deg) scale(.95); }
+  78%  { opacity: 1; transform: translate(-12px, 8px) rotate(1deg) scale(.98); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
 }
 
 /* Má hồng cô gái — hiện nhẹ khi chàng trai đến gần */
@@ -4621,7 +4682,7 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .woman-blush-new {
-  animation: blushInNew .9s ease 10.25s forwards;
+  animation: blushInNew 1.1s ease 11.2s forwards;
 }
 
 @keyframes blushInNew {
@@ -4640,15 +4701,15 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h1 {
-  animation: heartFloatNew 2.7s ease 14.25s infinite;
+  animation: heartFloatNew 3s ease 16.8s infinite;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h2 {
-  animation: heartFloatNew 3.0s ease 14.6s infinite;
+  animation: heartFloatNew 3.2s ease 17.2s infinite;
 }
 
 .gift-cinematic__bouquet.is-playing .drawn-scene .h3 {
-  animation: heartFloatNew 2.8s ease 14.9s infinite;
+  animation: heartFloatNew 3.1s ease 17.6s infinite;
 }
 
 @keyframes heartFloatNew {
@@ -4671,7 +4732,7 @@ body[data-scene="memory"] .orb-b {
 }
 
 .gift-cinematic__bouquet.is-playing .bouquet-caption {
-  animation: captionIn 1.2s ease 14.55s forwards;
+  animation: captionIn 1.4s ease 23.4s forwards;
 }
 
 @keyframes captionIn {
@@ -4725,14 +4786,32 @@ body[data-scene="memory"] .orb-b {
   opacity: 0;
   transform: translateY(72px) scale(.12) rotate(-5deg);
   filter: blur(12px) brightness(.72);
-  animation: none;
+  animation: none !important;
+  perspective: none;
+  cursor: pointer;
   will-change: transform, opacity, filter;
 }
 
+.gift-handoff-box span,
+.gift-handoff-box .gift-lid,
+.gift-handoff-box .gift-bow,
+.gift-handoff-box .gift-ribbon-vertical,
+.gift-handoff-box .gift-ribbon-horizontal {
+  transition: none !important;
+}
+
+.gift-handoff-box .gift-lid {
+  transform: none !important;
+}
+
+.gift-handoff-box .gift-card,
+.gift-handoff-box .gift-light {
+  opacity: 0 !important;
+  transform: none !important;
+}
+
 .gift-cinematic.is-revealing .gift-handoff-box {
-  animation:
-    giftHandoffArrive 2.8s cubic-bezier(.16, .86, .28, 1) forwards,
-    giftBreath 3.4s ease-in-out 2.85s infinite;
+  animation: giftHandoffArrive 2.8s cubic-bezier(.16, .86, .28, 1) forwards !important;
 }
 
 @keyframes giftHandoffArrive {
@@ -4746,11 +4825,11 @@ body[data-scene="memory"] .orb-b {
   }
   64% {
     opacity: 1;
-    transform: translateY(-8px) scale(1.06) rotate(1deg);
-    filter: blur(0) brightness(1.08);
+    transform: translateY(-8px) scale(1.04) rotate(0);
+    filter: blur(0) brightness(1);
   }
   82% {
-    transform: translateY(3px) scale(.98) rotate(0);
+    transform: translateY(3px) scale(.99) rotate(0);
     filter: blur(0) brightness(1);
   }
   100% {
@@ -4769,12 +4848,29 @@ body[data-scene="memory"] .orb-b {
   letter-spacing: .03em;
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 1s ease 1.55s, transform 1s ease 1.55s;
+  transition: opacity 1s ease 2.2s, transform 1s ease 2.2s;
 }
 
-.gift-cinematic.is-revealing .gift-handoff-caption {
+.gift-handoff-hint {
+  margin: 14px 0 0;
+  color: rgba(255, 220, 210, .55);
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .8s ease 3.1s, transform .8s ease 3.1s;
+}
+
+.gift-cinematic.is-revealing .gift-handoff-caption,
+.gift-cinematic.is-revealing .gift-handoff-hint {
   opacity: 1;
   transform: translateY(0);
+}
+
+.gift-handoff-box.is-tapped {
+  transform: translateY(0) scale(.96);
+  filter: brightness(1.06);
 }
 
 @media (max-width: 520px) {
@@ -4822,9 +4918,7 @@ body[data-scene="memory"] .orb-b {
   .gift-cinematic__bouquet.is-playing .drawn-scene .scene-sparkle,
   .gift-cinematic__bouquet.is-playing .drawn-scene .woman-blush-new,
   .gift-cinematic__bouquet.is-playing .drawn-scene .heart-new,
-  .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman,
-  .gift-cinematic__bouquet.is-playing .man-leg-left,
-  .gift-cinematic__bouquet.is-playing .man-leg-right,
+  .gift-cinematic__bouquet.is-playing .drawn-man-left-arm,
   .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer,
   .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive,
   .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-support,
@@ -4845,15 +4939,10 @@ body[data-scene="memory"] .orb-b {
     transform: translate(44px, -2px) rotate(5deg) scale(.96) !important;
   }
 
-  .gift-cinematic__bouquet.is-playing .drawn-gift-behind {
-    animation: none !important;
-    opacity: 0 !important;
-  }
-
-  .gift-cinematic__bouquet.is-playing .drawn-gift-offer {
+  .gift-cinematic__bouquet.is-playing .drawn-gift-carry {
     animation: none !important;
     opacity: 1 !important;
-    transform: translate(16px, 45px) !important;
+    transform: translate(0, 0) scale(1) !important;
   }
 
   .gift-cinematic__bouquet.is-playing .bouquet-scene,
