@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#11100f">
   <title>Một điều dành riêng cho Ánh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Caveat:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Caveat:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,11 +26,187 @@
     <div class="bridge-lines" id="bridgeLines" aria-live="polite">
       <p>Đến đây rồi...</p>
       <p>À...</p>
-      <p>Đến lúc mở món quà rồi. 🎁</p>
+      <p>Đến lúc anh tặng em món quà rồi. 🎁</p>
     </div>
   </div>
 
   <div class="gift-firework-flash" id="giftFireworkFlash" aria-hidden="true"></div>
+
+  <div class="gift-cinematic" id="giftCinematic" aria-hidden="true">
+    <div class="gift-cinematic__veil" id="giftCinematicVeil"></div>
+
+    <div class="gift-cinematic__fireworks" id="giftFireworkPhase" aria-hidden="true">
+      <p class="gift-cinematic__hint">Món quà dành cho em...</p>
+    </div>
+
+    <div class="gift-cinematic__bouquet hidden" id="giftBouquetPhase" aria-hidden="true">
+      <div class="bouquet-scene" id="bouquetScene">
+        <p class="bouquet-kicker">DÀNH CHO ÁNH</p>
+
+        <svg class="drawn-scene" viewBox="0 0 800 520" role="img" aria-label="Anh đến tặng em bó hoa, rồi tặng thêm một hộp quà">
+          <defs>
+            <radialGradient id="drawnSceneGlow" cx="50%" cy="72%" r="58%">
+              <stop offset="0%" stop-color="rgba(255, 200, 190, .32)"/>
+              <stop offset="100%" stop-color="rgba(255, 200, 190, 0)"/>
+            </radialGradient>
+            <radialGradient id="bloomGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="rgba(255, 180, 200, .6)"/>
+              <stop offset="100%" stop-color="rgba(255, 180, 200, 0)"/>
+            </radialGradient>
+          </defs>
+
+          <ellipse class="scene-halo" cx="400" cy="452" rx="320" ry="46" fill="url(#drawnSceneGlow)"/>
+          <path class="draw-line ground-line" style="--d:0s;--dur:.55s"
+                d="M60 448 Q400 460 740 448"/>
+
+          <!-- Sao lấp lánh trên bầu trời -->
+          <g class="scene-sparkles" aria-hidden="true">
+            <circle class="scene-sparkle" style="--d:.4s;--tw:2.6s" cx="120" cy="120" r="1.4" fill="rgba(255,220,230,.9)"/>
+            <circle class="scene-sparkle" style="--d:.8s;--tw:3.1s" cx="240" cy="72"  r="1.2" fill="rgba(255,240,220,.85)"/>
+            <circle class="scene-sparkle" style="--d:1.2s;--tw:2.4s" cx="400" cy="60" r="1.5" fill="rgba(255,220,230,.9)"/>
+            <circle class="scene-sparkle" style="--d:1.6s;--tw:2.8s" cx="560" cy="80" r="1.3" fill="rgba(255,240,220,.85)"/>
+            <circle class="scene-sparkle" style="--d:2.0s;--tw:3.4s" cx="680" cy="140" r="1.5" fill="rgba(255,220,230,.9)"/>
+            <circle class="scene-sparkle" style="--d:2.4s;--tw:2.7s" cx="720" cy="300" r="1.2" fill="rgba(255,220,230,.85)"/>
+            <circle class="scene-sparkle" style="--d:2.8s;--tw:3.0s" cx="80"  cy="300" r="1.3" fill="rgba(255,240,220,.85)"/>
+          </g>
+
+          <!-- Cô gái: nét vẽ có khối, tay và chân theo đúng khớp -->
+          <g class="drawn-woman">
+            <path class="draw-line" style="--d:5.15s;--dur:.7s"
+                  d="M568 151 Q568 120 590 118 Q612 120 612 151 Q612 176 603 184 Q590 193 577 184 Q568 176 568 151 Z"/>
+            <path class="draw-line" style="--d:5.7s;--dur:.65s"
+                  d="M568 145 Q570 112 591 108 Q617 113 618 145 M570 137 Q580 126 590 132 Q600 122 615 137 M615 145 Q632 200 628 270"/>
+            <path class="draw-line eye" style="--d:6.15s;--dur:.2s" d="M578 153 Q583 149 588 153"/>
+            <path class="draw-line eye" style="--d:6.18s;--dur:.2s" d="M592 153 Q597 149 602 153"/>
+            <path class="draw-line smile" style="--d:6.35s;--dur:.22s" d="M584 171 Q590 176 596 171"/>
+            <path class="draw-line" style="--d:6.5s;--dur:.25s" d="M580 188 L579 207 M600 188 L601 207"/>
+            <path class="draw-line" style="--d:6.65s;--dur:.8s"
+                  d="M558 212 Q590 222 622 212 L612 300 L646 418 Q590 430 534 418 L568 300 Z"/>
+            <path class="draw-line" style="--d:7.25s;--dur:.25s" d="M568 300 Q590 306 612 300"/>
+            <!-- Tay trái: vai → khuỷu → cổ tay → bàn tay -->
+            <path class="draw-line" style="--d:7.05s;--dur:.55s"
+                  d="M558 214 Q548 251 550 279 Q550 303 558 320 Q564 325 569 320 Q565 300 566 279 Q570 244 574 218"/>
+            <ellipse class="draw-line" style="--d:7.5s;--dur:.2s" cx="564" cy="324" rx="6" ry="8"/>
+            <!-- Tay phải đón hoa -->
+            <g class="drawn-woman-arm-receive">
+              <path class="draw-line" style="--d:7.15s;--dur:.65s"
+                    d="M606 218 Q594 232 582 246 Q570 256 558 263 Q556 269 562 272 Q577 266 590 256 Q607 244 622 222"/>
+              <ellipse class="draw-line" style="--d:7.68s;--dur:.2s" cx="558" cy="268" rx="7" ry="5"/>
+            </g>
+            <!-- Hai chân cân đối và giày -->
+            <path class="draw-line" style="--d:7.65s;--dur:.38s" d="M572 418 L572 451 Q578 456 584 451 L585 421"/>
+            <path class="draw-line" style="--d:7.72s;--dur:.38s" d="M595 421 L596 451 Q602 456 608 451 L608 418"/>
+            <path class="draw-line" style="--d:8.0s;--dur:.2s" d="M570 452 Q578 459 588 454"/>
+            <path class="draw-line" style="--d:8.04s;--dur:.2s" d="M594 454 Q604 459 612 452"/>
+            <ellipse class="woman-blush-new" cx="576" cy="164" rx="4" ry="2.6" fill="rgba(255,150,170,.58)"/>
+            <ellipse class="woman-blush-new right" cx="604" cy="164" rx="4" ry="2.6" fill="rgba(255,150,170,.58)"/>
+          </g>
+
+          <!-- Chàng trai và các món quà cùng di chuyển -->
+          <g class="drawn-man-unit">
+            <g class="drawn-man">
+              <path class="draw-line" style="--d:.5s;--dur:.72s"
+                    d="M145 151 Q145 120 170 118 Q195 120 195 151 Q195 176 186 184 Q170 193 154 184 Q145 176 145 151 Z"/>
+              <path class="draw-line" style="--d:1.05s;--dur:.55s"
+                    d="M146 143 Q149 113 171 110 Q195 114 197 143 M149 135 Q159 125 169 134 Q177 123 193 136"/>
+              <path class="draw-line eye" style="--d:1.48s;--dur:.2s" d="M158 153 Q162 149 166 153"/>
+              <path class="draw-line eye" style="--d:1.51s;--dur:.2s" d="M174 153 Q178 149 182 153"/>
+              <path class="draw-line smile" style="--d:1.7s;--dur:.22s" d="M164 171 Q170 176 176 171"/>
+              <path class="draw-line" style="--d:1.88s;--dur:.25s" d="M160 188 L159 207 M180 188 L181 207"/>
+              <path class="draw-line" style="--d:2.05s;--dur:.72s"
+                    d="M135 210 Q170 221 205 210 L201 322 Q170 330 139 322 Z"/>
+              <path class="draw-line" style="--d:2.62s;--dur:.22s" d="M157 216 L170 234 L183 216"/>
+              <!-- Tay trái có bắp tay, khuỷu, cẳng tay và bàn tay -->
+              <path class="draw-line" style="--d:2.52s;--dur:.58s"
+                    d="M135 214 Q124 247 126 278 Q125 304 134 321 Q140 327 146 321 Q142 301 143 279 Q148 245 151 217"/>
+              <ellipse class="draw-line" style="--d:3.0s;--dur:.2s" cx="140" cy="325" rx="7" ry="8"/>
+              <!-- Hai ống quần có độ rộng và giày rõ ràng -->
+              <g class="man-leg-left">
+                <path class="draw-line" style="--d:2.82s;--dur:.52s" d="M140 322 L168 322 L164 451 Q156 457 146 451 Z"/>
+                <path class="draw-line" style="--d:3.24s;--dur:.2s" d="M145 451 Q157 460 171 454"/>
+              </g>
+              <g class="man-leg-right">
+                <path class="draw-line" style="--d:2.94s;--dur:.52s" d="M172 322 L201 322 L195 451 Q186 457 178 451 Z"/>
+                <path class="draw-line" style="--d:3.36s;--dur:.2s" d="M177 454 Q191 460 203 451"/>
+              </g>
+            </g>
+
+            <!-- Tay phải tặng hoa -->
+            <g class="drawn-arm-offer">
+              <path class="draw-line" style="--d:2.65s;--dur:.62s"
+                    d="M189 216 Q209 220 226 236 Q242 250 259 256 Q264 261 260 267 Q241 263 220 249 Q204 238 191 232"/>
+              <ellipse class="draw-line" style="--d:3.18s;--dur:.2s" cx="260" cy="262" rx="7" ry="5"/>
+              <!-- Bó hoa: miệng giấy gói rộng, đáy nhọn; không còn hình chậu -->
+              <g class="drawn-bouquet">
+                <path class="draw-line bouquet-wrap" style="--d:3.45s;--dur:.55s"
+                      d="M211 225 Q250 242 289 225 L258 294 Q250 302 242 294 Z"/>
+                <path class="draw-line" style="--d:3.88s;--dur:.25s" d="M237 278 Q250 272 263 278"/>
+                <path class="draw-line" style="--d:3.7s;--dur:.3s" d="M250 278 Q246 233 243 193 M250 278 Q232 236 222 205 M250 278 Q265 235 270 199 M250 278 Q281 242 291 219"/>
+                <!-- Từng bông có cánh hoa, không dùng các hình tròn như chậu cây -->
+                <g class="drawn-blooms">
+                  <path class="draw-line flower-line" style="--d:4.05s;--dur:.38s"
+                        d="M243 194 C230 187 231 174 243 181 C249 168 259 176 254 187 C266 190 260 201 250 197 C246 207 236 202 240 196 Z"/>
+                  <path class="draw-line flower-line" style="--d:4.18s;--dur:.38s"
+                        d="M222 205 C210 198 210 187 221 193 C226 181 236 188 232 198 C243 201 237 211 228 208 C224 218 215 213 219 207 Z"/>
+                  <path class="draw-line flower-line" style="--d:4.31s;--dur:.38s"
+                        d="M270 199 C259 192 259 181 270 187 C276 175 286 182 281 193 C293 196 287 207 277 203 C273 214 264 209 267 201 Z"/>
+                  <path class="draw-line flower-line" style="--d:4.44s;--dur:.36s"
+                        d="M291 219 C280 213 281 202 291 207 C296 196 305 203 301 212 C312 215 307 225 298 222 C294 232 286 228 289 220 Z"/>
+                  <path class="draw-line flower-line" style="--d:4.57s;--dur:.36s"
+                        d="M211 224 C200 218 201 207 211 212 C216 201 225 208 221 217 C232 220 227 230 218 227 C214 237 206 233 209 225 Z"/>
+                </g>
+              </g>
+            </g>
+
+            <!-- Sau bó hoa, chàng trai lấy hộp quà từ sau lưng và đưa ra -->
+            <g class="drawn-gift-offer">
+              <path class="draw-line gift-arm-line" style="--d:13.0s;--dur:.55s"
+                    d="M190 221 Q214 230 235 247 Q251 260 270 266"/>
+              <ellipse class="draw-line" style="--d:13.45s;--dur:.2s" cx="272" cy="267" rx="7" ry="5"/>
+              <g class="drawn-gift-box">
+                <rect class="draw-line" style="--d:13.2s;--dur:.45s" x="270" y="237" width="66" height="55" rx="5"/>
+                <path class="draw-line" style="--d:13.5s;--dur:.28s" d="M266 237 L340 237 L340 250 L266 250 Z"/>
+                <path class="draw-line" style="--d:13.7s;--dur:.22s" d="M302 237 L302 292"/>
+                <path class="draw-line gift-ribbon" style="--d:13.85s;--dur:.35s"
+                      d="M302 237 Q285 226 289 216 Q299 215 303 232 Q307 215 317 216 Q321 227 302 237"/>
+              </g>
+            </g>
+          </g>
+
+          <!-- Trái tim bay lên khi tặng -->
+          <g class="drawn-hearts" aria-hidden="true">
+            <path class="heart-new h1" d="M448 92c-8-14-28-14-28 4 0 18 28 32 28 32s28-14 28-32c0-18-20-18-28-4z" fill="#ff8fab"/>
+            <path class="heart-new h2" d="M394 118c-6-10-18-10-18 3 0 13 18 24 18 24s18-11 18-24c0-13-12-13-18-3z" fill="#ffb3c6"/>
+            <path class="heart-new h3" d="M498 114c-6-10-18-10-18 3 0 13 18 24 18 24s18-11 18-24c0-13-12-13-18-3z" fill="#ffc2d4"/>
+          </g>
+        </svg>
+
+        <p class="bouquet-caption">Một bó hoa để em mỉm cười,<br>và một món quà nhỏ anh dành riêng cho em.</p>
+
+        <button class="button button-light gift-cinematic-continue" id="giftCinematicContinue" type="button">
+          <span>Tiếp tục</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="gift-cinematic__handoff hidden" id="giftHandoffPhase" aria-hidden="true">
+      <div class="gift-handoff-stage">
+        <div class="luxury-gift gift-handoff-box" id="giftHandoffBox" aria-hidden="true">
+          <span class="gift-aura"></span>
+          <span class="gift-box-back"></span>
+          <span class="gift-box-front"></span>
+          <span class="gift-ribbon-vertical"></span>
+          <span class="gift-ribbon-horizontal"></span>
+          <span class="gift-lid"></span>
+          <span class="gift-bow bow-left"></span>
+          <span class="gift-bow bow-right"></span>
+          <span class="gift-light"></span>
+        </div>
+      </div>
+      <p class="gift-handoff-caption">Món quà dành riêng cho em.</p>
+    </div>
+  </div>
 
   <button class="audio-toggle" id="audioToggle" type="button" aria-label="Tắt nhạc nền">
     <svg class="icon-audio-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -534,10 +714,6 @@
           <span class="gift-lid"></span>
           <span class="gift-bow bow-left"></span>
           <span class="gift-bow bow-right"></span>
-          <span class="gift-card">
-            <small>DÀNH CHO ÁNH</small>
-            <strong>Một điều nhỏ<br>từ anh</strong>
-          </span>
           <span class="gift-light"></span>
         </button>
 
@@ -580,6 +756,6 @@
       <canvas id="keepsakeCanvas" width="1080" height="1350" hidden></canvas>
     </section>
   </main>
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

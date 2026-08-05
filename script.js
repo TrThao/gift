@@ -2,6 +2,20 @@ const PASSWORD = "1608";
 const DEFAULT_MONTH = 7;
 const DEFAULT_DAY = 16;
 const RECIPIENT_NAME = "Ánh";
+const prefersReducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isLowPowerDevice =
+  prefersReducedMotion ||
+  (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+  matchMedia("(max-width: 768px)").matches;
+const FX_DENSITY = prefersReducedMotion ? 0.12 : isLowPowerDevice ? 0.3 : 0.55;
+const MAX_FX_PARTICLES = isLowPowerDevice ? 420 : 800;
+
+document.documentElement.dataset.performance = isLowPowerDevice ? "lite" : "full";
+
+function scaledFxCount(count, minimum = 1) {
+  return Math.max(minimum, Math.round(count * FX_DENSITY));
+}
 
 function showGiftSuccess() {
   document.getElementById("successDate").textContent =
@@ -46,29 +60,69 @@ function vibrate(pattern) {
 
 /* ═════════════════ FX canvas (fireflies + petals + sparkles) ═════════════════ */
 const fxCanvas = document.getElementById("fxCanvas");
-const fxCtx = fxCanvas ? fxCanvas.getContext("2d") : null;
+const fxCtx = fxCanvas
+  ? fxCanvas.getContext("2d", { alpha: true, desynchronized: true })
+  : null;
 let fxParticles = [];
 let fxRunning = false;
+let fxResizeFrame = 0;
+const fireflySprites = new Map();
+
+function enqueueFxParticle(particle) {
+  if (fxParticles.length >= MAX_FX_PARTICLES) return;
+  fxParticles.push(particle);
+}
+
+function getFireflySprite(size) {
+  const radius = Math.max(3, Math.round(size));
+  if (fireflySprites.has(radius)) return fireflySprites.get(radius);
+
+  const sprite = document.createElement("canvas");
+  const diameter = radius * 2;
+  sprite.width = diameter;
+  sprite.height = diameter;
+  const ctx = sprite.getContext("2d");
+  const glow = ctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
+  glow.addColorStop(0, "rgba(255, 230, 170, .95)");
+  glow.addColorStop(0.4, "rgba(255, 200, 130, .5)");
+  glow.addColorStop(1, "rgba(255, 200, 130, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, diameter, diameter);
+  fireflySprites.set(radius, sprite);
+  return sprite;
+}
 
 function fxResize() {
   if (!fxCanvas) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, isLowPowerDevice ? 1 : 1.5);
   fxCanvas.width = window.innerWidth * dpr;
   fxCanvas.height = window.innerHeight * dpr;
   fxCanvas.style.width = window.innerWidth + "px";
   fxCanvas.style.height = window.innerHeight + "px";
   if (fxCtx) fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.addEventListener("resize", fxResize);
+window.addEventListener("resize", () => {
+  cancelAnimationFrame(fxResizeFrame);
+  fxResizeFrame = requestAnimationFrame(fxResize);
+}, { passive: true });
 
 function fxLoop() {
   if (!fxCtx) return;
+  if (document.hidden) {
+    fxRunning = false;
+    return;
+  }
+  if (fxParticles.length > MAX_FX_PARTICLES) {
+    fxParticles = fxParticles.slice(-MAX_FX_PARTICLES);
+  }
   fxCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   const now = performance.now();
 
-  fxParticles = fxParticles.filter(p => {
+  let aliveCount = 0;
+  for (let i = 0; i < fxParticles.length; i++) {
+    const p = fxParticles[i];
     const life = (now - p.born) / p.duration;
-    if (life >= 1) return false;
+    if (life >= 1) continue;
 
     p.x += p.vx;
     p.y += p.vy;
@@ -87,14 +141,8 @@ function fxLoop() {
     fxCtx.translate(p.x, p.y);
 
     if (p.type === "firefly") {
-      const glow = fxCtx.createRadialGradient(0, 0, 0, 0, 0, p.size);
-      glow.addColorStop(0, "rgba(255, 230, 170, .95)");
-      glow.addColorStop(0.4, "rgba(255, 200, 130, .5)");
-      glow.addColorStop(1, "rgba(255, 200, 130, 0)");
-      fxCtx.fillStyle = glow;
-      fxCtx.beginPath();
-      fxCtx.arc(0, 0, p.size, 0, Math.PI * 2);
-      fxCtx.fill();
+      const sprite = getFireflySprite(p.size);
+      fxCtx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
     } else if (p.type === "petal") {
       fxCtx.rotate(p.rot);
       fxCtx.fillStyle = p.color;
@@ -125,9 +173,9 @@ function fxLoop() {
       fxCtx.fillRect(-p.size * .45, -p.size * .2, p.size * .9, p.size * .4);
     }
     fxCtx.restore();
-
-    return true;
-  });
+    fxParticles[aliveCount++] = p;
+  }
+  fxParticles.length = aliveCount;
 
   if (fxParticles.length > 0) {
     requestAnimationFrame(fxLoop);
@@ -141,6 +189,10 @@ function ensureFxRunning() {
   fxRunning = true;
   requestAnimationFrame(fxLoop);
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && fxParticles.length > 0) ensureFxRunning();
+});
 
 function drawMiniFlower(ctx, size, color) {
   const petal = size * .55;
@@ -176,7 +228,7 @@ function pushFlowerBurstParticle(x, y, speed, now, durationBase = 2800) {
   const roll = Math.random();
 
   if (roll < .42) {
-    fxParticles.push({
+    enqueueFxParticle({
       type: "flower",
       x, y,
       vx: Math.cos(angle) * sp,
@@ -194,7 +246,7 @@ function pushFlowerBurstParticle(x, y, speed, now, durationBase = 2800) {
   }
 
   if (roll < .78) {
-    fxParticles.push({
+    enqueueFxParticle({
       type: "petal",
       x, y,
       vx: Math.cos(angle) * sp * 1.1,
@@ -211,7 +263,7 @@ function pushFlowerBurstParticle(x, y, speed, now, durationBase = 2800) {
     return;
   }
 
-  fxParticles.push({
+  enqueueFxParticle({
     type: roll < .9 ? "sparkle" : "confetti",
     x, y,
     vx: Math.cos(angle) * sp * 1.25,
@@ -231,17 +283,19 @@ function spawnGrandFlowerFirework(originX, originY) {
   const cx = originX ?? window.innerWidth / 2;
   const cy = originY ?? window.innerHeight * 0.42;
   const now = performance.now();
+  const outerCount = scaledFxCount(200, 30);
+  const ringCount = scaledFxCount(140, 22);
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < outerCount; i++) {
     pushFlowerBurstParticle(cx, cy, 8.5 + Math.random() * 5, now, 3400);
   }
 
   setTimeout(() => {
     const t = performance.now();
-    for (let i = 0; i < 140; i++) {
-      const angle = (i / 140) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+    for (let i = 0; i < ringCount; i++) {
+      const angle = (i / ringCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
       const sp = 6 + Math.random() * 4.5;
-      fxParticles.push({
+      enqueueFxParticle({
         type: "flower",
         x: cx,
         y: cy,
@@ -275,42 +329,209 @@ function resetGiftFireworkFlash() {
   if (flash) flash.classList.remove("is-active");
 }
 
-function celebrateGiftOpened(originX, originY) {
-  const flash = document.getElementById("giftFireworkFlash");
-  const px = `${(originX / window.innerWidth) * 100}%`;
-  const py = `${(originY / window.innerHeight) * 100}%`;
-
-  if (flash) {
-    flash.style.setProperty("--fx-x", px);
-    flash.style.setProperty("--fx-y", py);
-    flash.classList.remove("is-active");
-    void flash.offsetWidth;
-    flash.classList.add("is-active");
-    flash.setAttribute("aria-hidden", "false");
-    setTimeout(() => {
-      flash.classList.remove("is-active");
-      flash.setAttribute("aria-hidden", "true");
-    }, 1100);
-  }
-
-  spawnGrandFlowerFirework(originX, originY);
-  ensureAudio();
-  playGiftFireworkSfx();
-  vibrate([25, 35, 90, 45, 110]);
-}
-
 function playGiftFireworkSfx() {
   playSfx("firework", { volume: 0.68 });
   playSfx("sparkle", { volume: 0.44, when: 0.32 });
   playSfx("whoosh", { volume: 0.2, rate: 1.4, when: 0.38 });
 }
 
+function flashGiftCinematicVeil() {
+  const veil = document.getElementById("giftCinematicVeil");
+  if (!veil) return;
+  veil.classList.remove("flash");
+  void veil.offsetWidth;
+  veil.classList.add("flash");
+  setTimeout(() => veil.classList.remove("flash"), 220);
+}
+
+function spawnClassicFirework(cx, cy) {
+  const now = performance.now();
+  const colors = ["#ffd700", "#ff6b8a", "#ffb3c6", "#fff8e8", "#ff8fab", "#e8c4ff", "#ffffff"];
+  const particleCount = scaledFxCount(130, 22);
+
+  for (let i = 0; i < particleCount; i++) {
+    const angle = (i / particleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.25;
+    const sp = 4.5 + Math.random() * 6.5;
+    enqueueFxParticle({
+      type: Math.random() > 0.35 ? "sparkle" : "confetti",
+      x: cx,
+      y: cy,
+      vx: Math.cos(angle) * sp,
+      vy: Math.sin(angle) * sp,
+      gravity: 0.016,
+      drag: 0.984,
+      rot: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.14,
+      size: 2.5 + Math.random() * 5.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      born: now,
+      duration: 2400 + Math.random() * 1200
+    });
+  }
+
+  spawnGrandFlowerFirework(cx, cy);
+  flashGiftCinematicVeil();
+  ensureFxRunning();
+}
+
+function runCinematicFireworkShow() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const allBursts = [
+    [w * 0.5, h * 0.36, 0],
+    [w * 0.26, h * 0.3, 750],
+    [w * 0.74, h * 0.32, 1500],
+    [w * 0.5, h * 0.24, 2250],
+    [w * 0.36, h * 0.4, 3000],
+    [w * 0.64, h * 0.38, 3750],
+    [w * 0.5, h * 0.34, 4500]
+  ];
+  const bursts = isLowPowerDevice
+    ? allBursts.filter((_, index) => index % 2 === 0)
+    : allBursts;
+
+  playGiftFireworkSfx();
+  bursts.forEach(([x, y, delay], index) => {
+    setTimeout(() => {
+      spawnClassicFirework(x, y);
+      if (index > 0 && index % 2 === 0) playGiftFireworkSfx();
+    }, delay);
+  });
+}
+
+let giftCinematicRunning = false;
+const initializedDrawnScenes = new WeakSet();
+
+/* Đo chiều dài thật của từng nét vẽ để hiệu ứng "vẽ tay" chạy đúng —
+   mỗi path/circle sẽ có strokeDasharray = strokeDashoffset = độ dài,
+   rồi keyframe sketchDraw đưa dashoffset về 0. */
+function initDrawnScene(bqPhase) {
+  const scene = bqPhase?.querySelector(".drawn-scene");
+  if (!scene || initializedDrawnScenes.has(scene)) return;
+  scene.querySelectorAll(".draw-line").forEach(el => {
+    if (typeof el.getTotalLength !== "function") return;
+    const len = el.getTotalLength();
+    if (!Number.isFinite(len) || len <= 0) return;
+    el.style.strokeDasharray = `${len}`;
+    el.style.strokeDashoffset = `${len}`;
+  });
+  initializedDrawnScenes.add(scene);
+}
+
+function resetGiftCinematic() {
+  giftCinematicRunning = false;
+  const cinematic = document.getElementById("giftCinematic");
+  const fwPhase = document.getElementById("giftFireworkPhase");
+  const bqPhase = document.getElementById("giftBouquetPhase");
+  const handoff = document.getElementById("giftHandoffPhase");
+  const continueBtn = document.getElementById("giftCinematicContinue");
+  const veil = document.getElementById("giftCinematicVeil");
+
+  cinematic?.classList.remove("is-active", "phase-fireworks", "phase-bouquet", "phase-handoff", "is-revealing");
+  cinematic?.setAttribute("aria-hidden", "true");
+  fwPhase?.classList.remove("hidden");
+  fwPhase?.setAttribute("aria-hidden", "true");
+  bqPhase?.classList.add("hidden");
+  bqPhase?.classList.remove("is-playing");
+  bqPhase?.setAttribute("aria-hidden", "true");
+  handoff?.classList.add("hidden");
+  handoff?.classList.remove("is-revealing");
+  handoff?.setAttribute("aria-hidden", "true");
+  continueBtn?.classList.remove("is-visible");
+  veil?.classList.remove("flash");
+  fxCanvas?.classList.remove("above");
+  resetGiftFireworkFlash();
+}
+
+async function playGiftHandoffReveal() {
+  const cinematic = document.getElementById("giftCinematic");
+  const bqPhase = document.getElementById("giftBouquetPhase");
+  const handoff = document.getElementById("giftHandoffPhase");
+  const continueBtn = document.getElementById("giftCinematicContinue");
+
+  continueBtn?.classList.remove("is-visible");
+  bqPhase?.classList.add("hidden");
+  bqPhase?.classList.remove("is-playing");
+  bqPhase?.setAttribute("aria-hidden", "true");
+
+  cinematic?.classList.remove("phase-bouquet", "phase-fireworks");
+  cinematic?.classList.add("phase-handoff");
+  handoff?.classList.remove("hidden");
+  handoff?.setAttribute("aria-hidden", "false");
+
+  playSfx("sparkle", { volume: 0.45 });
+  spawnPetals(24);
+  vibrate([30, 40, 30]);
+
+  await sleep(120);
+  cinematic?.classList.add("is-revealing");
+  handoff?.classList.add("is-revealing");
+
+  await sleep(3200);
+
+  resetGiftCinematic();
+  passcode = "";
+  resetPasscodeUI();
+  updatePasscode();
+  showScreen("unlock");
+}
+
+async function playGiftGivingCinematic() {
+  if (giftCinematicRunning) return;
+  giftCinematicRunning = true;
+
+  const cinematic = document.getElementById("giftCinematic");
+  const fwPhase = document.getElementById("giftFireworkPhase");
+  const bqPhase = document.getElementById("giftBouquetPhase");
+  if (!cinematic || !fwPhase || !bqPhase) {
+    giftCinematicRunning = false;
+    return;
+  }
+
+  resetGiftCinematic();
+  giftCinematicRunning = true;
+
+  cinematic.classList.add("is-active", "phase-fireworks");
+  cinematic.setAttribute("aria-hidden", "false");
+  fwPhase.setAttribute("aria-hidden", "false");
+  fxCanvas?.classList.add("above");
+
+  ensureAudio();
+  unlockAmbientFromGesture();
+  runCinematicFireworkShow();
+
+  await sleep(5400);
+
+  cinematic.classList.remove("phase-fireworks");
+  cinematic.classList.add("phase-bouquet");
+  fwPhase.classList.add("hidden");
+  fwPhase.setAttribute("aria-hidden", "true");
+  bqPhase.classList.remove("hidden");
+  bqPhase.setAttribute("aria-hidden", "false");
+
+  initDrawnScene(bqPhase);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => bqPhase.classList.add("is-playing"));
+  });
+
+  playSfx("sparkle", { volume: 0.42 });
+  spawnPetals(28);
+
+  await sleep(16000);
+  await sleep(900);
+
+  await playGiftHandoffReveal();
+  giftCinematicRunning = false;
+}
+
 function spawnFireflies(originX, originY, count = 60) {
   const now = performance.now();
+  count = scaledFxCount(count);
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 0.3 + Math.random() * 1.6;
-    fxParticles.push({
+    enqueueFxParticle({
       type: "firefly",
       x: originX + (Math.random() - .5) * 40,
       y: originY + (Math.random() - .5) * 40,
@@ -330,8 +551,9 @@ function spawnFireflies(originX, originY, count = 60) {
 function spawnPetals(count = 45) {
   const now = performance.now();
   const w = window.innerWidth;
+  count = scaledFxCount(count);
   for (let i = 0; i < count; i++) {
-    fxParticles.push({
+    enqueueFxParticle({
       type: "petal",
       x: Math.random() * w,
       y: -30 - Math.random() * 200,
@@ -352,10 +574,11 @@ function spawnPetals(count = 45) {
 
 function spawnSparkleBurst(x, y, count = 20) {
   const now = performance.now();
+  count = scaledFxCount(count);
   for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
     const sp = 1.5 + Math.random() * 3;
-    fxParticles.push({
+    enqueueFxParticle({
       type: "sparkle",
       x, y,
       vx: Math.cos(a) * sp,
@@ -375,16 +598,32 @@ function spawnSparkleBurst(x, y, count = 20) {
 /* ═════════════════ Cursor light trail ═════════════════ */
 const cursorTrail = document.getElementById("cursorTrail");
 let lastTrailAt = 0;
-if (cursorTrail && matchMedia("(hover: hover)").matches) {
+if (cursorTrail && !isLowPowerDevice && matchMedia("(hover: hover)").matches) {
+  const trailDots = Array.from({ length: 10 }, () => {
+    const dot = document.createElement("span");
+    dot.hidden = true;
+    cursorTrail.appendChild(dot);
+    return dot;
+  });
+  let trailIndex = 0;
+
   document.addEventListener("pointermove", e => {
     const now = performance.now();
-    if (now - lastTrailAt < 30) return;
+    if (now - lastTrailAt < 70) return;
     lastTrailAt = now;
-    const dot = document.createElement("span");
+    const dot = trailDots[trailIndex];
+    trailIndex = (trailIndex + 1) % trailDots.length;
+    dot.hidden = false;
     dot.style.left = e.clientX + "px";
     dot.style.top = e.clientY + "px";
-    cursorTrail.appendChild(dot);
-    setTimeout(() => dot.remove(), 800);
+    dot.getAnimations().forEach(animation => animation.cancel());
+    dot.animate(
+      [
+        { opacity: 0.8, transform: "translate(-50%, -50%) scale(1)" },
+        { opacity: 0, transform: "translate(-50%, -50%) scale(.4)" }
+      ],
+      { duration: 650, easing: "ease-out" }
+    );
   }, { passive: true });
 }
 
@@ -395,6 +634,8 @@ let ambientAudio = null;
 let ambientFadeTimer = null;
 let ambientOn = false;
 let ambientMuted = false;
+let ambientPrimed = false;
+let ambientWantsPlay = false;
 
 function fadeAmbientVolume(target, durationMs = 800) {
   if (!ambientAudio) return;
@@ -422,58 +663,77 @@ function ensureAmbientAudio() {
   if (ambientAudio) return ambientAudio;
   ambientAudio = new Audio(AMBIENT_FILE);
   ambientAudio.loop = true;
-  ambientAudio.preload = "auto";
+  ambientAudio.preload = "none";
   ambientAudio.playsInline = true;
   ambientAudio.setAttribute("playsinline", "");
   ambientAudio.volume = 0;
   return ambientAudio;
 }
 
-function startAmbient() {
+function primeAmbientAudio() {
+  if (ambientPrimed) return;
+  ambientPrimed = true;
+  const audio = ensureAmbientAudio();
+  if (audio.readyState === 0) audio.load();
+}
+
+function markAmbientPlaying() {
+  ambientWantsPlay = false;
+  ambientOn = true;
+  if (ambientAudio) {
+    ambientAudio.muted = false;
+    fadeAmbientVolume(0.34, 1500);
+  }
+}
+
+function attemptAmbientPlay() {
+  if (!ambientWantsPlay || ambientOn || ambientMuted || !ambientAudio) return;
+  ambientAudio.volume = 0;
+  ambientAudio.muted = false;
+  ambientAudio.play().then(markAmbientPlaying).catch(() => {});
+}
+
+function playAmbientFromGesture() {
   if (ambientOn || ambientMuted) return;
 
-  const audio = ensureAmbientAudio();
-  audio.volume = 0;
+  ensureAudio();
+  primeAmbientAudio();
+  ambientWantsPlay = true;
+  attemptAmbientPlay();
 
-  const onPlaying = () => {
-    ambientOn = true;
-    audio.muted = false;
-    fadeAmbientVolume(0.34, 2200);
-  };
-
-  const tryPlay = (muted = false) => {
-    audio.muted = muted;
-    return audio.play().then(onPlaying);
-  };
-
-  const attempt = () => {
-    tryPlay(false)
-      .catch(() => tryPlay(true))
-      .catch(() => {});
-  };
-
-  if (audio.readyState >= 2) {
-    attempt();
-  } else {
-    audio.addEventListener("canplaythrough", attempt, { once: true });
-    audio.load();
+  const audio = ambientAudio;
+  if (audio && audio.readyState < 2) {
+    audio.addEventListener("loadeddata", attemptAmbientPlay, { once: true });
+    audio.addEventListener("canplay", attemptAmbientPlay, { once: true });
   }
+}
+
+function startAmbient() {
+  playAmbientFromGesture();
 }
 
 function unlockAmbientFromGesture() {
   if (ambientMuted) return;
+
   if (!ambientOn) {
-    startAmbient();
+    playAmbientFromGesture();
     return;
   }
-  if (ambientAudio?.muted) {
-    ambientAudio.muted = false;
-    fadeAmbientVolume(0.34, 600);
+
+  const audio = ambientAudio;
+  if (!audio) return;
+
+  if (audio.paused || audio.muted) {
+    audio.muted = false;
+    audio.play()
+      .then(() => fadeAmbientVolume(0.34, 600))
+      .catch(() => {});
   }
 }
 
 function stopAmbient() {
   if (!ambientOn || !ambientAudio) return;
+  ambientWantsPlay = false;
   fadeAmbientVolume(0, 600);
   setTimeout(() => {
     ambientAudio.pause();
@@ -515,29 +775,9 @@ if (audioToggleBtn) {
   });
 }
 
-ensureAmbientAudio().load();
-startAmbient();
-
-["pointerdown", "keydown", "touchstart", "click"].forEach(type => {
-  document.addEventListener(type, unlockAmbientFromGesture, { passive: true });
-});
-
-/* —— Soft SFX via Web Audio (files in /music + synth fallback) —— */
-const SFX_FILES = {
-  ting: "music/ting.wav",
-  click: "music/click.wav",
-  whoosh: "music/whoosh.wav",
-  blow: "music/blow.wav",
-  sparkle: "music/sparkle.wav",
-  type: "music/type.wav",
-  pulse: "music/pulse.wav",
-  firework: "music/firework.wav"
-};
-
+/* —— Soft synthesized SFX via Web Audio —— */
 const sfxBuffers = {};
 let audioCtx = null;
-let sfxReady = false;
-let sfxLoadPromise = null;
 let letterTypeTimers = [];
 let pulseHoldTimer = null;
 
@@ -558,30 +798,30 @@ function makeBuffer(duration, fillFn) {
   return buffer;
 }
 
-function buildSynthFallbacks() {
-  if (sfxBuffers.ting) return;
+function buildSynthFallback(name) {
+  if (sfxBuffers[name]) return sfxBuffers[name];
 
-  sfxBuffers.ting = makeBuffer(0.45, (t) => {
+  if (name === "ting") sfxBuffers.ting = makeBuffer(0.45, (t) => {
     const e = Math.exp(-t * 5.5);
     return (Math.sin(2 * Math.PI * 2349 * t) * 0.35 +
       Math.sin(2 * Math.PI * 3520 * t) * 0.18 +
       Math.sin(2 * Math.PI * 4698 * t) * 0.08) * e;
   });
 
-  sfxBuffers.click = makeBuffer(0.1, (t, i) => {
+  if (name === "click") sfxBuffers.click = makeBuffer(0.1, (t, i) => {
     const n = ((Math.sin(i * 12.9898) * 43758.5453) % 1) * 2 - 1;
     return n * Math.exp(-t * 70) * 0.4 +
       Math.sin(2 * Math.PI * 2100 * t) * Math.exp(-t * 45) * 0.35 +
       Math.sin(2 * Math.PI * 4200 * t) * Math.exp(-t * 80) * 0.15;
   });
 
-  sfxBuffers.whoosh = makeBuffer(0.55, (t, i) => {
+  if (name === "whoosh") sfxBuffers.whoosh = makeBuffer(0.55, (t, i) => {
     const n = ((Math.sin(i * 78.233) * 43758.5453) % 1) * 2 - 1;
     const amp = Math.sin(Math.PI * t / 0.55) ** 1.1 * 0.5;
     return n * amp;
   });
 
-  sfxBuffers.blow = makeBuffer(0.38, (t, i) => {
+  if (name === "blow") sfxBuffers.blow = makeBuffer(0.38, (t, i) => {
     const n = ((Math.sin(i * 53.441) * 43758.5453) % 1) * 2 - 1;
     const n2 = ((Math.sin(i * 17.891) * 43758.5453) % 1) * 2 - 1;
     const attack = Math.min(1, t / 0.025);
@@ -591,7 +831,7 @@ function buildSynthFallbacks() {
     return breath + puff;
   });
 
-  sfxBuffers.sparkle = makeBuffer(0.65, (t) => {
+  if (name === "sparkle") sfxBuffers.sparkle = makeBuffer(0.65, (t) => {
     let s = 0;
     const hits = [
       [0, 2637, 0.22], [0.07, 3136, 0.16], [0.14, 3951, 0.18],
@@ -604,18 +844,18 @@ function buildSynthFallbacks() {
     return s;
   });
 
-  sfxBuffers.type = makeBuffer(0.035, (t, i) => {
+  if (name === "type") sfxBuffers.type = makeBuffer(0.035, (t, i) => {
     const n = ((Math.sin(i * 45.123) * 43758.5453) % 1) * 2 - 1;
     return n * Math.exp(-t * 100) * 0.2;
   });
 
-  sfxBuffers.pulse = makeBuffer(0.65, (t) => {
+  if (name === "pulse") sfxBuffers.pulse = makeBuffer(0.65, (t) => {
     const e = t < 0.05 ? t / 0.05 : t > 0.35 ? Math.max(0, (0.65 - t) / 0.3) : 1;
     const bump = t > 0.2 && t < 0.38 ? 1 + 0.35 * Math.sin((t - 0.2) / 0.18 * Math.PI) : 1;
     return (Math.sin(2 * Math.PI * 52 * t) * 0.4 + Math.sin(2 * Math.PI * 78 * t) * 0.18) * e * bump;
   });
 
-  sfxBuffers.firework = makeBuffer(1.45, (t, i) => {
+  if (name === "firework") sfxBuffers.firework = makeBuffer(1.45, (t, i) => {
     const n = ((Math.sin(i * 91.17) * 43758.5453) % 1) * 2 - 1;
     const rise = t < 0.26 ? n * Math.sin((t / 0.26) * Math.PI) * 0.11 * (1 + t * 2.2) : 0;
     const boomT = t - 0.26;
@@ -639,48 +879,31 @@ function buildSynthFallbacks() {
     }
     return rise + boom + tail;
   });
-}
-
-async function loadSfxBuffers() {
-  if (sfxLoadPromise) return sfxLoadPromise;
-  sfxLoadPromise = (async () => {
-    const ctx = getAudioCtx();
-    buildSynthFallbacks();
-
-    await Promise.all(Object.entries(SFX_FILES).map(async ([name, path]) => {
-      try {
-        const res = await fetch(path);
-        if (!res.ok) throw new Error(path);
-        const raw = await res.arrayBuffer();
-        sfxBuffers[name] = await ctx.decodeAudioData(raw.slice(0));
-      } catch (_) {
-        // keep synth fallback
-      }
-    }));
-    sfxReady = true;
-  })();
-  return sfxLoadPromise;
+  return sfxBuffers[name];
 }
 
 function ensureAudio() {
   const ctx = getAudioCtx();
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
-  if (!sfxBuffers.ting) buildSynthFallbacks();
-  loadSfxBuffers();
   return ctx;
 }
 
-["pointerdown", "touchstart", "keydown", "click"].forEach(type => {
-  document.addEventListener(type, () => ensureAudio(), { passive: true });
-});
+function activateAudioFromFirstInteraction() {
+  ensureAudio();
+  unlockAmbientFromGesture();
+  document.removeEventListener("pointerdown", activateAudioFromFirstInteraction);
+  document.removeEventListener("keydown", activateAudioFromFirstInteraction);
+}
+
+document.addEventListener("pointerdown", activateAudioFromFirstInteraction, { passive: true });
+document.addEventListener("keydown", activateAudioFromFirstInteraction, { passive: true });
 
 function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
   try {
     const ctx = ensureAudio();
     let buffer = sfxBuffers[name];
     if (!buffer) {
-      buildSynthFallbacks();
-      buffer = sfxBuffers[name];
+      buffer = buildSynthFallback(name);
     }
     if (!buffer) return;
 
@@ -854,24 +1077,35 @@ async function typewriteLetter() {
               : "paragraph";
     const delay = perCharDelay[kind];
 
-    // Split into chars, wrap each in span
     const chars = [...p.text];
-    for (let ci = 0; ci < chars.length; ci++) {
+    const chunkSize = isLowPowerDevice ? 5 : 3;
+    for (let ci = 0; ci < chars.length; ci += chunkSize) {
       if (letterTypeAbort) { letterTyping = false; return; }
-      const ch = chars[ci];
-      if (ch === "\n") {
-        el.appendChild(document.createElement("br"));
-      } else {
-        const span = document.createElement("span");
-        span.className = "letter-char" + (ch === " " ? " space" : "");
-        span.textContent = ch === " " ? " " : ch;
-        el.appendChild(span);
-        requestAnimationFrame(() => span.classList.add("visible"));
-        if (ch !== " " && ci % 3 === 0) {
-          playSfx("type", { volume: 0.14, rate: 0.9 + Math.random() * 0.2 });
+      const fragment = document.createDocumentFragment();
+      const revealBatch = [];
+      const end = Math.min(chars.length, ci + chunkSize);
+
+      for (let index = ci; index < end; index++) {
+        const ch = chars[index];
+        if (ch === "\n") {
+          fragment.appendChild(document.createElement("br"));
+        } else {
+          const span = document.createElement("span");
+          span.className = "letter-char" + (ch === " " ? " space" : "");
+          span.textContent = ch;
+          fragment.appendChild(span);
+          revealBatch.push(span);
         }
       }
-      await sleep(delay + (Math.random() * 20 - 10));
+
+      el.appendChild(fragment);
+      requestAnimationFrame(() => {
+        revealBatch.forEach(span => span.classList.add("visible"));
+      });
+      if (revealBatch.some(span => span.textContent.trim()) && ci % 12 === 0) {
+        playSfx("type", { volume: 0.12, rate: 0.9 + Math.random() * 0.2 });
+      }
+      await sleep((delay + (Math.random() * 12 - 6)) * (end - ci));
     }
 
     await sleep(kind === "salutation" ? 400 : kind === "paragraph" ? 260 : 500);
@@ -1008,6 +1242,8 @@ let realMode = true;
 let passcode = "";
 let timer;
 let countdownBaselineMs = null;
+let lastThemeDays = null;
+let lastDisplayedDate = "";
 
 const COUNTDOWN_RING = 2 * Math.PI * 46;
 
@@ -1064,7 +1300,8 @@ function createLetterSparks() {
   const field = document.getElementById("sparkField");
   if (!field || field.children.length) return;
 
-  for (let i = 0; i < 38; i++) {
+  const sparkCount = isLowPowerDevice ? 16 : 26;
+  for (let i = 0; i < sparkCount; i++) {
     const spark = document.createElement("span");
     spark.className = "letter-spark";
     if (i % 7 === 0) spark.classList.add("large");
@@ -1080,6 +1317,10 @@ function createLetterSparks() {
 }
 
 function showScreen(name) {
+  if (name !== "letter") {
+    letterTypeAbort = true;
+    letterTyping = false;
+  }
   Object.values(screens).forEach(screen => screen.classList.add("hidden"));
   screens[name].classList.remove("hidden");
   setScene(name);
@@ -1101,7 +1342,8 @@ function showScreen(name) {
 function createMarks() {
   const holder = document.getElementById("floatingMarks");
   holder.innerHTML = "";
-  for (let i = 0; i < 20; i++) {
+  const markCount = isLowPowerDevice ? 8 : 14;
+  for (let i = 0; i < markCount; i++) {
     const dot = document.createElement("span");
     dot.style.left = `${Math.random() * 100}%`;
     dot.style.bottom = `${-10 - Math.random() * 80}px`;
@@ -1236,6 +1478,7 @@ function beginHold(event) {
 
   holdStart = performance.now();
   ensureAudio();
+  unlockAmbientFromGesture();
   startPulseHold();
   document.getElementById("holdButton").classList.add("holding");
   document.getElementById("fingerprintStatus").textContent = "Đang mở phần dành cho em...";
@@ -1289,14 +1532,18 @@ function getDailyHint(days){
 }
 
 function tick() {
+  if (document.hidden) return;
   const now = realMode ? new Date() : new Date(simulatedNow);
 
   if (!realMode) {
     simulatedNow = new Date(simulatedNow.getTime() + 1000);
   }
 
-  document.getElementById("displayDate").textContent =
-    `${pad(now.getDate())} · ${pad(now.getMonth() + 1)} · ${now.getFullYear()}`;
+  const displayDate = `${pad(now.getDate())} · ${pad(now.getMonth() + 1)} · ${now.getFullYear()}`;
+  if (displayDate !== lastDisplayedDate) {
+    document.getElementById("displayDate").textContent = displayDate;
+    lastDisplayedDate = displayDate;
+  }
 
   const diff = targetDate.getTime() - now.getTime();
 
@@ -1318,12 +1565,12 @@ function tick() {
   document.getElementById("seconds").textContent = pad(seconds);
 
   updateCountdownProgress(diff);
-  updateCountdownTarget();
-
-  document.getElementById("dateHint").textContent =
-    `${getDailyHint(days)}`;
-
-  applyTheme(days);
+  if (days !== lastThemeDays) {
+    updateCountdownTarget();
+    document.getElementById("dateHint").textContent = getDailyHint(days);
+    applyTheme(days);
+    lastThemeDays = days;
+  }
 }
 
 function start() {
@@ -1339,6 +1586,8 @@ function start() {
   letterTypeAbort = true;
   fxParticles = [];
   countdownBaselineMs = null;
+  lastThemeDays = null;
+  lastDisplayedDate = "";
   fxResize();
 
   const gift = document.getElementById("giftObject");
@@ -1362,6 +1611,7 @@ function start() {
 
   resetStarGame();
   resetMemoryGiftBridge();
+  resetGiftCinematic();
   resetGiftFireworkFlash();
 
   resetPasscodeUI();
@@ -1498,6 +1748,7 @@ document.getElementById("passcodeArea").addEventListener("click", event => {
   const button = event.target.closest("button");
   if (!button) return;
   ensureAudio();
+  unlockAmbientFromGesture();
 
   if (button.dataset.key && passcode.length < 4) {
     passcode += button.dataset.key;
@@ -1577,7 +1828,8 @@ const wrongStarHints = [
 function createMemoryStars() {
   const field = document.getElementById("memoryStars");
   if (field && !field.children.length) {
-    for (let i = 0; i < 42; i++) {
+    const backgroundStarCount = isLowPowerDevice ? 20 : 32;
+    for (let i = 0; i < backgroundStarCount; i++) {
       const star = document.createElement("span");
       star.style.left = `${Math.random() * 100}%`;
       star.style.top = `${Math.random() * 100}%`;
@@ -1606,7 +1858,8 @@ function buildStarGame() {
   map.innerHTML = "";
   starGameStarted = true;
 
-  for (let i = 0; i < 78; i++) {
+  const decoyCount = isLowPowerDevice ? 34 : 50;
+  for (let i = 0; i < decoyCount; i++) {
     const star = document.createElement("button");
     star.type = "button";
     star.className = "sky-star decoy";
@@ -1934,11 +2187,11 @@ async function playMemoryGiftBridge() {
     await sleep(BRIDGE_LINE_PAUSES[i]);
   }
 
-  showScreen("gift");
   overlay.classList.remove("active");
   await sleep(580);
 
   resetMemoryGiftBridge();
+  await playGiftGivingCinematic();
 }
 
 document.getElementById("memoryNextButton").addEventListener("click", () => {
@@ -1972,7 +2225,6 @@ function resetGiftVisual() {
   // Re-apply step classes so reload of screen keeps state
   if (giftStep >= 1) gift.classList.add("step-one");
   if (giftStep >= 2) gift.classList.add("step-two");
-  if (giftStep >= 3) gift.classList.add("step-three");
 }
 
 document.getElementById("giftObject").addEventListener("click", () => {
@@ -2015,23 +2267,34 @@ document.getElementById("giftObject").addEventListener("click", () => {
     playSfx("whoosh", { volume: 0.55 });
     playSfx("sparkle", { volume: 0.5, when: 0.12 });
     vibrate([40, 30, 60]);
-    // Petal shower!
     spawnPetals(60);
     setTimeout(() => spawnPetals(30), 400);
-    instruction.textContent = "Có gì đó bên trong... chạm thêm một lần nữa";
+    instruction.textContent = "Chạm lần cuối để mở quà nhé";
     return;
   }
 
-  gift.classList.add("step-three");
-  const gr = gift.getBoundingClientRect();
-  celebrateGiftOpened(gr.left + gr.width / 2, gr.top + gr.height * 0.38);
-  instruction.textContent = "Món quà đã sẵn sàng cho Ánh";
+  giftStep = 3;
+  gift.classList.add("step-two", "step-three");
+  ensureAudio();
+  unlockAmbientFromGesture();
+  playSfx("whoosh", { volume: 0.62 });
+  playSfx("sparkle", { volume: 0.5, when: 0.15 });
+  vibrate([50, 40, 90]);
+  spawnPetals(40);
+  instruction.textContent = "Món quà đã mở. Chạm để nhận nhé";
   claim.disabled = false;
   claim.classList.remove("is-disabled");
 });
 
 document.getElementById("claimGiftButton").addEventListener("click", () => {
   showGiftSuccess();
+});
+
+document.getElementById("giftCinematicContinue")?.addEventListener("click", async () => {
+  if (giftCinematicRunning) return;
+  giftCinematicRunning = true;
+  await playGiftHandoffReveal();
+  giftCinematicRunning = false;
 });
 
 function buildPolaroidRow() {

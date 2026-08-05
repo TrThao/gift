@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Caveat:wght@400;500;600;700&family=Dancing+Script:wght@500;600;700&display=swap');
-
 :root {
   --bg: #11100f;
   --bg-soft: #1b1917;
@@ -124,7 +122,7 @@ button { border: 0; }
   inset: -50%;
   opacity: .055;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
-  animation: grainMove .25s steps(2) infinite;
+  transform: translate3d(-1%, 1%, 0);
 }
 
 @keyframes grainMove {
@@ -2733,8 +2731,7 @@ h1 {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 224, 178, .55), transparent 65%);
   transform: translate(-50%, -50%);
-  animation: trailFade .8s ease-out forwards;
-  will-change: opacity, transform;
+  opacity: 0;
 }
 
 @keyframes trailFade {
@@ -2744,6 +2741,20 @@ h1 {
 
 @media (hover: none), (max-width: 768px) {
   .cursor-trail { display: none; }
+}
+
+html[data-performance="lite"] .floating-marks span:nth-child(n + 9) {
+  display: none;
+}
+
+html[data-performance="lite"] .orb {
+  filter: none;
+}
+
+html[data-performance="lite"] .demo-panel,
+html[data-performance="lite"] .star-reveal-card,
+html[data-performance="lite"] .star-hint {
+  backdrop-filter: none;
 }
 
 /* Scene transition overlay — fade between screens */
@@ -4248,5 +4259,509 @@ body[data-scene="memory"] .orb-b {
 
   .time-pill strong {
     font-size: 24px;
+  }
+}
+
+/* ═══ Gift reveal cinematic — fireworks + bouquet scene ═══ */
+.gift-cinematic {
+  position: fixed;
+  inset: 0;
+  z-index: 52;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .9s ease, visibility .9s ease;
+}
+
+.gift-cinematic.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.gift-cinematic__veil {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  transition: background .6s ease;
+}
+
+.gift-cinematic__veil.flash {
+  background: radial-gradient(circle at 50% 40%, rgba(255, 220, 200, .22), #000 65%);
+}
+
+.gift-cinematic.phase-bouquet .gift-cinematic__veil {
+  background: radial-gradient(ellipse at 50% 80%, rgba(60, 28, 38, .95), #050304 72%);
+}
+
+.gift-cinematic__fireworks,
+.gift-cinematic__bouquet {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.gift-cinematic__hint {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: rgba(255, 235, 220, .55);
+  font-family: var(--display);
+  font-size: clamp(18px, 3.5vw, 26px);
+  font-style: italic;
+  letter-spacing: .04em;
+  opacity: 0;
+  animation: cinematicHintFade 5s ease forwards;
+}
+
+@keyframes cinematicHintFade {
+  0%, 12% { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  28%, 72% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+}
+
+.bouquet-scene {
+  width: min(92vw, 720px);
+  padding: 24px 20px 32px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(24px) scale(.97);
+  transition: opacity 1.1s ease, transform 1.2s cubic-bezier(.22, 1, .36, 1);
+}
+
+.gift-cinematic__bouquet.is-playing .bouquet-scene {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.bouquet-kicker {
+  margin: 0 0 18px;
+  font-size: 11px;
+  letter-spacing: .28em;
+  color: rgba(255, 210, 195, .65);
+}
+
+.drawn-scene {
+  width: 100%;
+  max-width: 660px;
+  height: auto;
+  margin: 0 auto 20px;
+  overflow: visible;
+}
+
+.drawn-scene .scene-halo {
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  transform: scale(.6);
+}
+
+.gift-cinematic__bouquet.is-playing .scene-halo {
+  animation: sceneHaloIn 1.8s ease .2s forwards;
+}
+
+@keyframes sceneHaloIn {
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Sao trên trời — nhấp nháy nhẹ nhàng */
+.drawn-scene .scene-sparkle {
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  filter: drop-shadow(0 0 3px rgba(255, 210, 220, .8));
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .scene-sparkle {
+  animation:
+    sparkleFadeIn 1.2s ease var(--d, 0s) forwards,
+    sparkleTwinkle var(--tw, 3s) ease-in-out calc(var(--d, 0s) + 1.2s) infinite;
+}
+
+@keyframes sparkleFadeIn {
+  to { opacity: 1; }
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% { transform: scale(1); opacity: .95; }
+  50%      { transform: scale(1.35); opacity: .5; }
+}
+
+/* Nét vẽ tay — cùng phong cách "starlight" với trái tim ở phần chọn sao.
+   stroke-dasharray / stroke-dashoffset được set inline theo chiều dài thật
+   của mỗi nét bởi initDrawnScene(). */
+.drawn-scene .draw-line {
+  fill: none;
+  stroke: rgba(255, 220, 226, 1);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter:
+    drop-shadow(0 0 2px rgba(255, 170, 195, .85))
+    drop-shadow(0 0 7px rgba(255, 110, 150, .45));
+  will-change: stroke-dashoffset;
+}
+
+.drawn-scene .ground-line {
+  stroke: rgba(255, 200, 210, .55);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 4px rgba(255, 150, 180, .5));
+}
+
+/* Nét mắt và miệng mảnh hơn cho tinh tế */
+.drawn-scene .eye,
+.drawn-scene .smile {
+  stroke-width: 1.6;
+  stroke: rgba(255, 230, 232, 1);
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .draw-line {
+  animation: sketchDraw var(--dur, .8s) cubic-bezier(.45, 0, .2, 1) var(--d, 0s) forwards;
+}
+
+@keyframes sketchDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.drawn-scene .flower-line,
+.drawn-scene .bouquet-wrap,
+.drawn-scene .gift-ribbon {
+  stroke: rgba(255, 195, 214, 1);
+  filter:
+    drop-shadow(0 0 3px rgba(255, 160, 190, .85))
+    drop-shadow(0 0 8px rgba(255, 100, 150, .5));
+}
+
+/* Nhóm cô gái — thở nhẹ khi đứng chờ */
+.drawn-scene .drawn-woman {
+  transform-origin: 590px 456px;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman {
+  animation: figureIdle 3.6s ease-in-out 8.25s infinite;
+}
+
+/* Nhóm chàng trai + bó hoa — di chuyển sang phải khi đến bên em */
+.drawn-man-unit {
+  transform: translate(0, 0);
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-man-unit {
+  animation: manWalk 1.9s cubic-bezier(.42, 0, .28, 1) 8.35s forwards;
+}
+
+@keyframes manWalk {
+  0%   { transform: translate(0, 0); }
+  12%  { transform: translate(30px, -3px); }
+  25%  { transform: translate(60px, 0); }
+  37%  { transform: translate(90px, -3px); }
+  50%  { transform: translate(120px, 0); }
+  62%  { transform: translate(150px, -3px); }
+  75%  { transform: translate(180px, 0); }
+  87%  { transform: translate(212px, -2px); }
+  100% { transform: translate(245px, 0); }
+}
+
+@keyframes figureIdle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.6px); }
+}
+
+/* Bước chân đung đưa khi đi */
+.drawn-scene .man-leg-left {
+  transform-origin: 154px 322px;
+}
+
+.drawn-scene .man-leg-right {
+  transform-origin: 186px 322px;
+}
+
+.gift-cinematic__bouquet.is-playing .man-leg-left {
+  animation: legSwingLeft .48s ease-in-out 8.35s 4;
+}
+
+.gift-cinematic__bouquet.is-playing .man-leg-right {
+  animation: legSwingRight .48s ease-in-out 8.59s 4;
+}
+
+@keyframes legSwingLeft {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(14deg); }
+}
+
+@keyframes legSwingRight {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-14deg); }
+}
+
+/* Tay phải đưa hoa nghiêng nhẹ về phía cô gái */
+.drawn-scene .drawn-arm-offer {
+  transform-origin: 191px 218px;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer {
+  animation: armOffer 2.7s cubic-bezier(.34, 1.05, .64, 1) 10.35s forwards;
+}
+
+@keyframes armOffer {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  35%, 62% { transform: translate(20px, -6px) rotate(-5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Cô gái vươn tay đón hoa: xoay theo chiều kim đồng hồ quanh vai
+   → bàn tay dịch chuyển về phía chàng trai */
+.drawn-scene .drawn-woman-arm-receive {
+  transform-origin: 616px 220px;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive {
+  animation: receiveArm 2.5s cubic-bezier(.34, 1.05, .64, 1) 10.6s forwards;
+}
+
+@keyframes receiveArm {
+  0%   { transform: rotate(0); }
+  28%, 62% { transform: translate(-10px, -3px) rotate(10deg); }
+  100% { transform: translate(4px, 12px) rotate(-8deg); }
+}
+
+/* Bó hoa được trao sang tay cô gái rồi cất nhẹ ra sau lưng. */
+.drawn-scene .drawn-bouquet {
+  transform-origin: 250px 260px;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-bouquet {
+  animation: bouquetToBehind 1.75s cubic-bezier(.4, 0, .2, 1) 11.35s forwards;
+}
+
+@keyframes bouquetToBehind {
+  0%   { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
+  42%  { opacity: 1; transform: translate(42px, -2px) rotate(5deg) scale(.96); }
+  78%  { opacity: .9; transform: translate(100px, 64px) rotate(24deg) scale(.82); }
+  100% { opacity: 0; transform: translate(116px, 78px) rotate(30deg) scale(.72); }
+}
+
+/* Hộp quà đi từ sau lưng chàng trai ra phía trước sau khi hoa được cất. */
+.drawn-scene .drawn-gift-offer {
+  opacity: 0;
+  transform-origin: 190px 222px;
+  transform: translate(-54px, 38px) rotate(12deg) scale(.8);
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .drawn-gift-offer {
+  animation: giftTakeOut 1.45s cubic-bezier(.22, 1, .36, 1) 12.7s forwards;
+}
+
+@keyframes giftTakeOut {
+  0%   { opacity: 0; transform: translate(-54px, 38px) rotate(12deg) scale(.8); }
+  18%  { opacity: 1; }
+  70%  { opacity: 1; transform: translate(8px, -5px) rotate(-3deg) scale(1.04); }
+  100% { opacity: 1; transform: translate(12px, -3px) rotate(0) scale(1); }
+}
+
+/* Má hồng cô gái — hiện nhẹ khi chàng trai đến gần */
+.drawn-scene .woman-blush-new {
+  opacity: 0;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .woman-blush-new {
+  animation: blushInNew .9s ease 10.25s forwards;
+}
+
+@keyframes blushInNew {
+  to { opacity: 1; }
+}
+
+/* Trái tim bay lên khi bó hoa được trao */
+.drawn-scene .heart-new {
+  opacity: 0;
+  fill: none;
+  stroke: rgba(255, 170, 200, .95);
+  stroke-width: 2;
+  transform-origin: center;
+  transform-box: fill-box;
+  filter: drop-shadow(0 0 6px rgba(255, 150, 190, .7));
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .h1 {
+  animation: heartFloatNew 2.7s ease 14.25s infinite;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .h2 {
+  animation: heartFloatNew 3.0s ease 14.6s infinite;
+}
+
+.gift-cinematic__bouquet.is-playing .drawn-scene .h3 {
+  animation: heartFloatNew 2.8s ease 14.9s infinite;
+}
+
+@keyframes heartFloatNew {
+  0%   { opacity: 0;   transform: translateY(14px) scale(.6); }
+  20%  { opacity: .95; transform: translateY(0)    scale(1); }
+  80%  { opacity: .75; transform: translateY(-26px) scale(1.05); }
+  100% { opacity: 0;   transform: translateY(-46px) scale(.85); }
+}
+
+.bouquet-caption {
+  margin: 0 0 28px;
+  color: rgba(255, 235, 225, .9);
+  font-family: var(--display);
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.gift-cinematic__bouquet.is-playing .bouquet-caption {
+  animation: captionIn 1.2s ease 14.55s forwards;
+}
+
+@keyframes captionIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gift-cinematic-continue {
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.gift-cinematic-continue.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.gift-cinematic__handoff {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.gift-cinematic.phase-handoff .gift-cinematic__veil {
+  background: radial-gradient(circle at 50% 46%, rgba(80, 36, 48, .55), #050304 72%);
+}
+
+.gift-handoff-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: min(52vh, 420px);
+}
+
+.gift-handoff-box {
+  position: relative;
+  opacity: 0;
+  transform: scale(.62) translateY(48px);
+  filter: blur(6px);
+  transition:
+    opacity 2.4s cubic-bezier(.22, 1, .36, 1),
+    transform 2.6s cubic-bezier(.22, 1, .36, 1),
+    filter 2s ease;
+  animation: none;
+}
+
+.gift-cinematic.is-revealing .gift-handoff-box {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0);
+  animation: giftBreath 3.4s ease-in-out infinite;
+}
+
+.gift-handoff-caption {
+  margin: 28px 0 0;
+  color: rgba(255, 235, 220, .72);
+  font-family: var(--display);
+  font-size: clamp(20px, 3.8vw, 30px);
+  font-style: italic;
+  letter-spacing: .03em;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 1.4s ease .9s, transform 1.4s ease .9s;
+}
+
+.gift-cinematic.is-revealing .gift-handoff-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 520px) {
+  .bouquet-scene {
+    padding: 16px 12px 24px;
+  }
+
+  .bouquet-caption {
+    font-size: clamp(19px, 5.2vw, 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-cinematic__bouquet.is-playing .drawn-scene .draw-line {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .drawn-scene .bloom,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .bloom-halo,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .scene-sparkle,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .woman-blush-new,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .heart-new,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman,
+  .gift-cinematic__bouquet.is-playing .man-leg-left,
+  .gift-cinematic__bouquet.is-playing .man-leg-right,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-arm-offer,
+  .gift-cinematic__bouquet.is-playing .drawn-scene .drawn-woman-arm-receive,
+  .gift-cinematic__bouquet.is-playing .scene-halo {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .drawn-man-unit {
+    animation: none !important;
+    transform: translate(245px, 0) !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .drawn-bouquet {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .drawn-gift-offer {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate(12px, -3px) !important;
+  }
+
+  .gift-cinematic__bouquet.is-playing .bouquet-scene,
+  .gift-cinematic__bouquet.is-playing .bouquet-caption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gift-screen .claim-button.is-disabled {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-marks span,
+  .kinetic-rail,
+  .letter-marquee,
+  .letter-spark,
+  .memory-stars span,
+  .sky-star,
+  .flame,
+  .orb {
+    animation: none !important;
+    transition: none !important;
   }
 }
