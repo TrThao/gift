@@ -1165,11 +1165,12 @@ function captureLetterHTML() {
 
   originalLetterParagraphs.push(
     { cls: "letter-salutation", text: "Gửi Ánh," },
-    { cls: "letter-paragraph", text: "Anh không biết bắt đầu từ đâu, nên anh làm trang này để em mở từng chút một, theo nhịp của em." },
-    { cls: "letter-paragraph", text: "Những điều anh nhớ về em thường rất nhỏ: cách em kể chuyện, lúc em cười, lúc em yên. Chúng không lớn, nhưng đủ để anh để ý." },
-    { cls: "letter-paragraph", text: "Hôm nay anh chỉ muốn em vui một chút. Không cần lý do, cũng không cần câu trả lời nào." },
-    { cls: "letter-paragraph", text: "Mong những ngày tới của em đầy những điều dễ thương — và thỉnh thoảng, trong vài khoảnh khắc đó, anh cũng được xuất hiện một chút." },
-    { cls: "letter-ending", text: "Chúc Ánh sinh nhật thật dịu dàng." },
+    { cls: "letter-paragraph", text: "Anh đã nghĩ khá lâu xem nên viết gì cho em trong ngày hôm nay. Một lời chúc bình thường thì có vẻ hơi nhanh, còn một bức thư quá dài lại dễ thành cầu kỳ. Cuối cùng, anh chọn làm trang này để em có thể mở từng phần thật chậm, theo cách riêng của em." },
+    { cls: "letter-paragraph", text: "Có lẽ từ lúc nào đó, anh bắt đầu để ý đến những điều rất nhỏ: cách em kể một câu chuyện, lúc em vui, lúc em yên lặng, hay những lần em vô tình khiến không khí xung quanh trở nên nhẹ hơn. Những điều ấy không quá lớn, nhưng đủ để anh nhớ." },
+    { cls: "letter-paragraph", text: "Anh chỉ mong khi mở đến đây, em sẽ thấy vui một chút. Không cần phải nghĩ quá nhiều về lý do, cũng không cần phải tìm một câu trả lời nào cả. Cứ xem đây là một điều nhỏ được chuẩn bị riêng cho em là được." },
+    { cls: "letter-paragraph", text: "Anh mong những tháng ngày sắp tới của em sẽ có thật nhiều điều dễ thương: những buổi đi chơi vui vẻ, những món ăn ngon, những tin nhắn khiến em bất giác mỉm cười, và những ngày trôi qua nhẹ nhàng hơn một chút." },
+    { cls: "letter-paragraph", text: "Còn anh, anh chỉ mong trong một vài khoảnh khắc vui của em sau này, thỉnh thoảng anh cũng có thể được xuất hiện ở đó. Không cần quá nhiều, chỉ cần đủ để em nhớ rằng đã có một người từng dành thời gian chuẩn bị điều này cho em." },
+    { cls: "letter-ending", text: "Chúc Ánh có một ngày thật vui.\nVà mong món quà nhỏ này sẽ làm em mỉm cười theo cách thật tự nhiên." },
     { cls: "signature", text: "— Anh" }
   );
 }
@@ -1379,7 +1380,7 @@ const themes = [
     chapter: "CHƯƠNG 02",
     kicker: "THỜI GIAN VẪN ĐANG LÀM PHẦN VIỆC CỦA NÓ",
     title: "Thêm một ngày được giữ kín.",
-    message: "Không phải bí mật nào cũng cần bật mí sớm. Đôi khi việc chờ đợi cũng là một phần của món quà.",
+    message: "Không phải bí mật nào cũng cần được bật mí sớm. Đôi khi việc chờ đợi chính là một phần của món quà.",
     accent: "#7f7462",
     accentSoft: "#c7bda8",
     bg: "#111310",
@@ -1390,7 +1391,7 @@ const themes = [
     chapter: "CHƯƠNG 03",
     kicker: "MỌI THỨ ĐANG DẦN THÀNH HÌNH",
     title: "Có người đã dành thời gian cho điều này.",
-    message: "Không ồn ào, không phô trương. Chỉ từng chi tiết nhỏ đang được đặt đúng chỗ.",
+    message: "Không quá ồn ào, không cần phô trương. Chỉ là từng chi tiết nhỏ đang được đặt đúng chỗ.",
     accent: "#817063",
     accentSoft: "#cdb4a0",
     bg: "#151311",
@@ -1401,7 +1402,7 @@ const themes = [
     chapter: "CHƯƠNG 04",
     kicker: "ĐÃ ĐI QUA HƠN NỬA CHẶNG ĐƯỜNG",
     title: "Điều bất ngờ đang ở gần hơn.",
-    message: "Cứ giữ lại một chút tò mò. Phần cuối sẽ thú vị hơn.",
+    message: "Có thể em đã đoán vài lần. Nhưng cứ giữ lại một chút tò mò, phần cuối sẽ thú vị hơn.",
     accent: "#766c79",
     accentSoft: "#c8bbc9",
     bg: "#121116",
@@ -1412,7 +1413,7 @@ const themes = [
     chapter: "CHƯƠNG 05",
     kicker: "BÂY GIỜ CÓ THỂ BẮT ĐẦU MONG CHỜ",
     title: "Khoảng cách chỉ còn tính bằng ngày.",
-    message: "Anh sẽ không nói trước. Em chỉ cần nhớ quay lại đúng ngày.",
+    message: "Anh sẽ không nói trước đâu. Em chỉ cần nhớ quay lại, đúng ngày và đúng lúc.",
     accent: "#816b6a",
     accentSoft: "#d1aaa7",
     bg: "#151111",
@@ -1423,7 +1424,7 @@ const themes = [
     chapter: "CHƯƠNG 06",
     kicker: "CÁNH CỬA ĐANG DẦN ĐƯỢC MỞ",
     title: "Chỉ còn vài lần thức dậy.",
-    message: "Điều anh cất giữ suốt thời gian qua sắp được trao tận tay Ánh.",
+    message: "Điều được cất giữ suốt thời gian qua sắp có thể trao tận tay Ánh.",
     accent: "#936e61",
     accentSoft: "#dab29f",
     bg: "#17110f",
@@ -1434,7 +1435,7 @@ const themes = [
     chapter: "CHƯƠNG 07",
     kicker: "NGÀY MAI",
     title: "Chỉ còn một giấc ngủ nữa.",
-    message: "Hôm nay cứ bình thường thôi. Ngày mai quay lại và nhập bốn con số quen thuộc.",
+    message: "Hôm nay em cứ bình thường thôi. Ngày mai hãy quay lại và nhập bốn con số quen thuộc.",
     accent: "#9d7264",
     accentSoft: "#e0b6a4",
     bg: "#17110f",
@@ -1445,7 +1446,7 @@ const themes = [
     chapter: "CHƯƠNG CUỐI",
     kicker: "ĐÃ ĐẾN LÚC",
     title: "Điều được chờ đợi đã ở ngay trước cửa.",
-    message: "Chỉ thêm một khoảnh khắc. Sau đó em có thể tự mở phần còn lại.",
+    message: "Chỉ thêm một khoảnh khắc. Sau đó, em có thể tự mình mở phần còn lại.",
     accent: "#a77a69",
     accentSoft: "#e5bca7",
     bg: "#17110f",
@@ -1758,8 +1759,8 @@ function getDailyHint(days){
   if(days > 7) return "Mỗi lần em quay lại sẽ có một thay đổi nhỏ.";
   if(days > 3) return "Hình như sắp hoàn thành rồi.";
   if(days > 1) return "Chỉ còn một chút nữa thôi.";
-  if(days === 1) return "Mai nhớ ghé lại — bốn con số quen thuộc.";
-  return "Hôm nay mọi thứ đã sẵn sàng.";
+  if(days === 1) return "Mai nhớ ghé lại nhé.";
+  return "Hôm nay có vẻ mọi thứ đã sẵn sàng.";
 }
 
 function tick() {
@@ -2031,11 +2032,11 @@ let activeTargetStar = null;
 let starGameStarted = false;
 
 const starTexts = [
-  "Anh thích cách em biến chuyện bình thường thành dễ thương.",
-  "Từ lúc làm trang này, anh vẫn tò mò không biết em sẽ cười thế nào.",
-  "Có những lúc em khiến không khí xung quanh nhẹ đi mà em chẳng hề hay biết.",
-  "Ánh — cái tên của em cũng là điều anh mong em luôn giữ được.",
-  "Cảm ơn em đã đi tới đây. Anh vui vì được chuẩn bị điều này cho em."
+  "Anh thích cách em làm những điều rất bình thường cũng trở nên dễ thương hơn.",
+  "Từ lúc bắt đầu làm trang này, anh đã luôn tò mò không biết em sẽ cười thế nào khi mở đến đây.",
+  "Có lẽ điều anh thích nhất là việc anh quan tâm đến em một cách rất tự nhiên, chẳng cần phải cố.",
+  "Anh mong Ánh sẽ luôn rạng rỡ như chính cái tên của em.",
+  "Và anh thật lòng mong đây sẽ không phải lần cuối anh được chuẩn bị một điều gì đó riêng cho em."
 ];
 
 /* Placed on the heart silhouette so once all found, the drawn heart passes through them:
