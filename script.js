@@ -878,8 +878,10 @@ if (audioToggleBtn) {
   });
 }
 
-/* —— SFX: ưu tiên file .wav, synth chỉ là fallback —— */
-const sfxBuffers = {};
+/* —— SFX: file .wav là nguồn chính; synth chỉ fallback khi file lỗi —— */
+const sfxFileBuffers = {};
+const sfxSynthBuffers = {};
+const sfxLoadFailed = new Set();
 const SFX_FILES = {
   blow: "music/blow.wav",
   click: "music/click.wav",
@@ -893,8 +895,7 @@ const SFX_FILES = {
 const sfxLoadPromises = new Map();
 const sfxPrefetch = {};
 
-/* Bắt đầu tải file WAV ngay khi script chạy — không cần đợi user tap.
-   ArrayBuffer sẽ được cache sẵn, chỉ decode lúc unlock audio. */
+/* Tải bytes WAV ngay khi script chạy — decode sau khi AudioContext sẵn sàng. */
 Object.entries(SFX_FILES).forEach(([name, url]) => {
   sfxPrefetch[name] = fetch(bustAssetUrl(url))
     .then(res => (res.ok ? res.arrayBuffer() : null))
@@ -934,29 +935,29 @@ function makeBuffer(duration, fillFn) {
 }
 
 function buildSynthFallback(name) {
-  if (sfxBuffers[name]) return sfxBuffers[name];
+  if (sfxSynthBuffers[name]) return sfxSynthBuffers[name];
 
-  if (name === "ting") sfxBuffers.ting = makeBuffer(0.45, (t) => {
+  if (name === "ting") sfxSynthBuffers.ting = makeBuffer(0.45, (t) => {
     const e = Math.exp(-t * 5.5);
     return (Math.sin(2 * Math.PI * 2349 * t) * 0.35 +
       Math.sin(2 * Math.PI * 3520 * t) * 0.18 +
       Math.sin(2 * Math.PI * 4698 * t) * 0.08) * e;
   });
 
-  if (name === "click") sfxBuffers.click = makeBuffer(0.1, (t, i) => {
+  if (name === "click") sfxSynthBuffers.click = makeBuffer(0.1, (t, i) => {
     const n = ((Math.sin(i * 12.9898) * 43758.5453) % 1) * 2 - 1;
     return n * Math.exp(-t * 70) * 0.4 +
       Math.sin(2 * Math.PI * 2100 * t) * Math.exp(-t * 45) * 0.35 +
       Math.sin(2 * Math.PI * 4200 * t) * Math.exp(-t * 80) * 0.15;
   });
 
-  if (name === "whoosh") sfxBuffers.whoosh = makeBuffer(0.55, (t, i) => {
+  if (name === "whoosh") sfxSynthBuffers.whoosh = makeBuffer(0.55, (t, i) => {
     const n = ((Math.sin(i * 78.233) * 43758.5453) % 1) * 2 - 1;
     const amp = Math.sin(Math.PI * t / 0.55) ** 1.1 * 0.5;
     return n * amp;
   });
 
-  if (name === "blow") sfxBuffers.blow = makeBuffer(0.38, (t, i) => {
+  if (name === "blow") sfxSynthBuffers.blow = makeBuffer(0.38, (t, i) => {
     const n = ((Math.sin(i * 53.441) * 43758.5453) % 1) * 2 - 1;
     const n2 = ((Math.sin(i * 17.891) * 43758.5453) % 1) * 2 - 1;
     const attack = Math.min(1, t / 0.025);
@@ -966,7 +967,7 @@ function buildSynthFallback(name) {
     return breath + puff;
   });
 
-  if (name === "sparkle") sfxBuffers.sparkle = makeBuffer(0.65, (t) => {
+  if (name === "sparkle") sfxSynthBuffers.sparkle = makeBuffer(0.65, (t) => {
     let s = 0;
     const hits = [
       [0, 2637, 0.22], [0.07, 3136, 0.16], [0.14, 3951, 0.18],
@@ -979,20 +980,20 @@ function buildSynthFallback(name) {
     return s;
   });
 
-  if (name === "type") sfxBuffers.type = makeBuffer(0.07, (t, i) => {
+  if (name === "type") sfxSynthBuffers.type = makeBuffer(0.07, (t, i) => {
     const n = ((Math.sin(i * 45.123) * 43758.5453) % 1) * 2 - 1;
     const noise = n * Math.exp(-t * 58) * 0.26;
     const tone = Math.sin(2 * Math.PI * 3200 * t) * Math.exp(-t * 72) * 0.22;
     return noise + tone;
   });
 
-  if (name === "pulse") sfxBuffers.pulse = makeBuffer(0.65, (t) => {
+  if (name === "pulse") sfxSynthBuffers.pulse = makeBuffer(0.65, (t) => {
     const e = t < 0.05 ? t / 0.05 : t > 0.35 ? Math.max(0, (0.65 - t) / 0.3) : 1;
     const bump = t > 0.2 && t < 0.38 ? 1 + 0.35 * Math.sin((t - 0.2) / 0.18 * Math.PI) : 1;
     return (Math.sin(2 * Math.PI * 52 * t) * 0.4 + Math.sin(2 * Math.PI * 78 * t) * 0.18) * e * bump;
   });
 
-  if (name === "firework") sfxBuffers.firework = makeBuffer(1.45, (t, i) => {
+  if (name === "firework") sfxSynthBuffers.firework = makeBuffer(1.45, (t, i) => {
     const n = ((Math.sin(i * 91.17) * 43758.5453) % 1) * 2 - 1;
     const rise = t < 0.26 ? n * Math.sin((t / 0.26) * Math.PI) * 0.11 * (1 + t * 2.2) : 0;
     const boomT = t - 0.26;
@@ -1016,7 +1017,7 @@ function buildSynthFallback(name) {
     }
     return rise + boom + tail;
   });
-  return sfxBuffers[name];
+  return sfxSynthBuffers[name];
 }
 
 function decodeAudioDataSafe(ctx, arrayBuffer) {
@@ -1034,11 +1035,11 @@ function decodeAudioDataSafe(ctx, arrayBuffer) {
 }
 
 async function loadSfxFile(name) {
-  if (sfxBuffers[name]) return sfxBuffers[name];
+  if (sfxFileBuffers[name]) return sfxFileBuffers[name];
   if (sfxLoadPromises.has(name)) return sfxLoadPromises.get(name);
 
   const url = SFX_FILES[name];
-  if (!url) return buildSynthFallback(name);
+  if (!url) return null;
 
   const promise = (async () => {
     try {
@@ -1046,7 +1047,7 @@ async function loadSfxFile(name) {
       let data = null;
       if (sfxPrefetch[name]) {
         const prefetched = await sfxPrefetch[name];
-        if (prefetched) data = prefetched.slice(0); // decodeAudioData transfers/consumes ArrayBuffer
+        if (prefetched) data = prefetched.slice(0);
       }
       if (!data) {
         const res = await fetch(bustAssetUrl(url));
@@ -1054,9 +1055,10 @@ async function loadSfxFile(name) {
         data = await res.arrayBuffer();
       }
       const buffer = await decodeAudioDataSafe(ctx, data);
-      sfxBuffers[name] = buffer;
+      sfxFileBuffers[name] = buffer;
       return buffer;
     } catch (_) {
+      sfxLoadFailed.add(name);
       return buildSynthFallback(name);
     } finally {
       sfxLoadPromises.delete(name);
@@ -1068,9 +1070,56 @@ async function loadSfxFile(name) {
 }
 
 function preloadSfxAssets() {
-  Object.keys(SFX_FILES).forEach(name => {
-    loadSfxFile(name);
-  });
+  Object.keys(SFX_FILES).forEach(name => loadSfxFile(name));
+}
+
+let blowAudioEl = null;
+
+function getBlowAudioEl() {
+  if (!blowAudioEl) {
+    blowAudioEl = new Audio(bustAssetUrl(SFX_FILES.blow));
+    blowAudioEl.preload = "auto";
+  }
+  return blowAudioEl;
+}
+
+function preloadLetterSfx() {
+  loadSfxFile("blow");
+  loadSfxFile("type");
+  loadSfxFile("sparkle");
+  try {
+    getBlowAudioEl().load();
+  } catch (_) {}
+}
+
+async function playBlowSfx(volume = 0.72) {
+  ensureAudio();
+  unlockAudioForIos();
+  const ctx = getAudioCtx();
+
+  if (sfxFileBuffers.blow) {
+    playSfxBuffer(ctx, sfxFileBuffers.blow, { volume, rate: 1 });
+    return;
+  }
+
+  if (!sfxLoadFailed.has("blow")) {
+    await loadSfxFile("blow");
+    if (sfxFileBuffers.blow) {
+      playSfxBuffer(ctx, sfxFileBuffers.blow, { volume, rate: 1 });
+      return;
+    }
+  }
+
+  try {
+    const el = getBlowAudioEl();
+    el.volume = Math.max(0, Math.min(1, volume));
+    el.currentTime = 0;
+    await el.play();
+    return;
+  } catch (_) {}
+
+  const synth = buildSynthFallback("blow");
+  if (synth) playSfxBuffer(ctx, synth, { volume, rate: 1 });
 }
 
 function playSfxBuffer(ctx, buffer, { volume = 0.55, rate = 1, when = 0 } = {}) {
@@ -1146,20 +1195,34 @@ function playSfx(name, { volume = 0.55, rate = 1, when = 0 } = {}) {
   try {
     const ctx = ensureAudio();
     const opts = { volume, rate, when };
-    const buffer = sfxBuffers[name];
 
-    if (buffer) {
-      playSfxBuffer(ctx, buffer, opts);
+    if (sfxFileBuffers[name]) {
+      playSfxBuffer(ctx, sfxFileBuffers[name], opts);
       return;
     }
 
-    // Nếu chưa có buffer từ .wav, chạy synth ngay để không "mất tiếng"
-    // (đặc biệt quan trọng trên iOS lần đầu, khi file chưa decode xong).
-    const synth = buildSynthFallback(name);
-    if (synth) playSfxBuffer(ctx, synth, opts);
+    if (sfxLoadFailed.has(name)) {
+      const synth = buildSynthFallback(name);
+      if (synth) playSfxBuffer(ctx, synth, opts);
+      return;
+    }
 
-    if (SFX_FILES[name]) {
-      loadSfxFile(name); // nạp sẵn cho lần sau
+    if (!SFX_FILES[name]) return;
+
+    const playResolved = () => {
+      if (sfxFileBuffers[name]) {
+        playSfxBuffer(ctx, sfxFileBuffers[name], opts);
+      } else {
+        const synth = buildSynthFallback(name);
+        if (synth) playSfxBuffer(ctx, synth, opts);
+      }
+    };
+
+    const pending = sfxLoadPromises.get(name);
+    if (pending) {
+      pending.finally(playResolved);
+    } else {
+      loadSfxFile(name).finally(playResolved);
     }
   } catch (_) {}
 }
@@ -1280,8 +1343,7 @@ function blowCandle(idx, candleEl) {
   candleEl.classList.add("blown");
   candleEl.disabled = true;
 
-  // Blow SFX + tiny sparkle at flame
-  playSfx("blow", { volume: 0.72, rate: 0.98 + Math.random() * 0.08 });
+  playBlowSfx(0.72);
   vibrate(20);
   const rect = candleEl.getBoundingClientRect();
   spawnSparkleBurst(rect.left + rect.width / 2, rect.top + 8, 6);
@@ -1612,6 +1674,7 @@ function showScreen(name) {
   if (name === "letter") {
     createLetterSparks();
     ensureAudio();
+    preloadLetterSfx();
     resetLetterForEnvelope();
   } else {
     clearLetterTypeSounds();
@@ -2084,11 +2147,11 @@ let activeTargetStar = null;
 let starGameStarted = false;
 
 const starTexts = [
-  "Trận game đầu tiên.\nAnh vẫn nhớ.",
-  "Em chắc quên rồi.\nAnh thì chưa.",
-  "Những lần\nchơi tới khuya.",
-  "Cảm ơn\nvì luôn rủ anh.",
-  "Hy vọng\nsẽ còn\nnhiều trận nữa."
+  "Sức khỏe",
+  "Niềm vui",
+  "Bình yên",
+  "May mắn",
+  "Hạnh phúc"
 ];
 
 /* Placed on the heart silhouette so once all found, the drawn heart passes through them:
@@ -2102,11 +2165,11 @@ const starPositions = [
 ];
 
 const wrongStarHints = [
-  "Không phải ngôi sao này đâu...",
+  "Không phải ngôi này đâu...",
   "Anh giấu kỹ hơn một chút.",
   "Nhìn nơi nào sáng lâu hơn nhé.",
   "Gần đúng rồi.",
-  "Ngôi sao cần tìm đang gọi em đấy."
+  "Lời ước đang ở một ngôi khác."
 ];
 
 function createMemoryStars() {
@@ -2175,13 +2238,13 @@ function spawnNextTarget() {
   target.style.left = `${x}%`;
   target.style.top = `${y}%`;
   target.dataset.index = index;
-  target.setAttribute("aria-label", `Ngôi sao đặc biệt số ${index + 1}`);
+  target.setAttribute("aria-label", `Lời ước số ${index + 1}`);
   map.appendChild(target);
   activeTargetStar = target;
   setStarMessage(
     index === 0
-      ? "Có một ngôi sao đang sáng khác thường. Thử tìm nó nhé."
-      : `Ngôi sao ${index + 1} / 5 vừa xuất hiện.`
+      ? "Có một ngôi sáng lên. Thử chạm vào đó nhé."
+      : `Lời ước ${index + 1} / 5 vừa hiện ra.`
   );
 }
 
@@ -2204,7 +2267,7 @@ function updateStarProgress() {
     dot.disabled = !opened;
     dot.setAttribute(
       "aria-label",
-      opened ? `Đọc lại ngôi sao ${index + 1}` : `Ngôi sao ${index + 1} chưa mở`
+      opened ? `Đọc lại lời ước ${index + 1}` : `Lời ước ${index + 1} chưa gom`
     );
   });
   document.getElementById("starCounter").textContent = `${count} / 5`;
@@ -2215,7 +2278,7 @@ function finishStarGame() {
   const next = document.getElementById("memoryNextButton");
   next.disabled = false;
   next.classList.remove("is-disabled");
-  setStarMessage("Năm câu đã được giữ lại. Em có thể đọc lại bất cứ lúc nào, rồi đi tiếp khi sẵn sàng.");
+  setStarMessage("Năm lời ước đã đủ. Em đọc lại được — khi sẵn sàng thì đi tiếp.");
   drawConstellation();
 }
 
@@ -2298,7 +2361,7 @@ function addStarKeepsake(index) {
   item.className = "star-keepsake-item";
   item.dataset.star = index;
   item.innerHTML = `
-    <small>✦ NGÔI SAO ${String(index + 1).padStart(2, "0")}</small>
+    <small>✦ LỜI ƯỚC ${String(index + 1).padStart(2, "0")}</small>
     <span>${previewText(starTexts[index])}</span>
   `;
   item.addEventListener("click", () => openStarReveal(index, true));
@@ -2330,16 +2393,15 @@ function openStarReveal(index, isReread = false) {
   revealIsReread = isReread;
 
   document.getElementById("starRevealCount").textContent =
-    `NGÔI SAO ${String(index + 1).padStart(2, "0")} · 05`;
-  document.getElementById("starRevealText").innerHTML =
-    starTexts[index].replace(/\n/g, "<br>");
+    `LỜI ƯỚC ${String(index + 1).padStart(2, "0")} · 05`;
+  document.getElementById("starRevealText").textContent = starTexts[index];
 
   if (isReread) {
     label.textContent = "Đóng lại";
   } else if (isLast) {
-    label.textContent = "Giữ lại câu cuối";
+    label.textContent = "Gom lời cuối";
   } else {
-    label.textContent = "Giữ lại câu này";
+    label.textContent = "Gom lời này";
   }
 
   if (!isReread) addStarKeepsake(index);
@@ -2366,7 +2428,7 @@ function resetStarGame() {
   if (counter) counter.textContent = "0 / 5";
 
   const message = document.getElementById("starMessage");
-  if (message) message.textContent = "Có một ngôi sao đang sáng khác thường. Thử tìm nó nhé.";
+  if (message) message.textContent = "Có một ngôi sáng lên. Thử chạm vào đó nhé.";
 
   const keepsake = document.getElementById("starKeepsake");
   const list = document.getElementById("starKeepsakeList");
@@ -2595,6 +2657,8 @@ if (cakeStage) {
     const candle = event.target.closest(".candle");
     if (!candle || candle.disabled) return;
     ensureAudio();
+    unlockAudioForIos();
+    preloadLetterSfx();
     const idx = Number(candle.dataset.candle);
     blowCandle(idx, candle);
   });

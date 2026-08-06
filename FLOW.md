@@ -29,7 +29,7 @@ flowchart TD
 | 1 | `waiting` | `waitingScreen` | `start()` |
 | 2 | `prelude` | `preludeScreen` | countdown = 0 → `runPrelude()` |
 | 3 | `letter` | `letterScreen` | fingerprint → `completeHold()` |
-| 4 | `memory` | `memoryScreen` | `#continueButton` |
+| 4 | `memory` | `memoryScreen` | `#continueButton` — gom 5 lời ước |
 | 4b | overlay | `#sceneTransition` | `#memoryNextButton` (5 sao) |
 | 4c | overlay | `#giftCinematic` | `playGiftGivingCinematic()` |
 | 5 | `unlock` | `unlockScreen` | handoff tap → `playGiftHandoffReveal()` |
@@ -51,7 +51,7 @@ flowchart TD
 |------|---------|
 | Prelude | `#preludeLines` trong `index.html` |
 | Thư | `originalLetterParagraphs` trong `captureLetterHTML()` |
-| 5 sao | `starTexts` trong `script.js` |
+| 5 sao | `starTexts` — Sức khỏe, Niềm vui, Bình yên, May mắn, Hạnh phúc |
 | Bridge | `#bridgeLines` trong `index.html` |
 | Cinematic caption | `.bouquet-caption` trong `index.html` |
 | Lời chúc cuối | `#giftBlessingLines`, `#giftEndingLines` |

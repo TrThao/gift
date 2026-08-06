@@ -182,12 +182,14 @@ button { border: 0; }
 .wait-screen {
   display: flex;
   flex-direction: column;
+  min-height: 100dvh;
+  width: 100%;
 }
 
 .waiting-layout {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
   align-items: center;
   gap: 7vw;
   padding: 7vh 0;
@@ -269,13 +271,15 @@ h1 {
 
 .time-center {
   text-align: center;
+  overflow: visible;
+  padding: 4px 8px;
 }
 
 .time-number {
   display: block;
   font-family: var(--display);
   font-size: clamp(82px, 10vw, 148px);
-  line-height: .82;
+  line-height: 1;
   letter-spacing: -.06em;
 }
 
@@ -770,7 +774,9 @@ h1 {
   }
 
   .time-object {
-    justify-self: start;
+    justify-self: center;
+    width: 100%;
+    max-width: 360px;
   }
 
   .unlock-screen {
@@ -811,18 +817,7 @@ h1 {
   }
 
   .waiting-layout {
-    padding-top: 13vh;
-  }
-
-  .time-ring {
-    width: 260px;
-    height: 260px;
-    min-width: 260px;
-    min-height: 260px;
-  }
-
-  .time-ring::after {
-    transform-origin: 4px 135px;
+    padding-top: 8vh;
   }
 
   .unlock-screen {
@@ -4159,11 +4154,17 @@ body[data-scene="memory"] .orb-b {
 }
 
 .countdown-visual .time-number {
-  font-size: clamp(76px, 9.5vw, 132px);
+  font-size: clamp(56px, 18vw, 132px);
+  line-height: 1;
+  padding: 0 6px;
   background: linear-gradient(165deg, #f5ebe0 8%, #d4aa95 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.countdown-visual .time-unit {
+  margin-top: 10px;
 }
 
 .countdown-target {
@@ -4247,12 +4248,13 @@ body[data-scene="memory"] .orb-b {
 
 @media (max-width: 900px) {
   .countdown-visual {
-    width: min(72vw, 340px);
-    height: min(72vw, 340px);
+    width: min(72vw, 300px);
+    height: min(72vw, 300px);
   }
 
   .time-object {
     width: 100%;
+    max-width: 320px;
     justify-self: center;
   }
 
@@ -5146,8 +5148,10 @@ body[data-scene="memory"] .orb-b {
 
   .waiting-layout {
     align-content: center;
-    gap: clamp(34px, 7vh, 62px);
-    padding-block: clamp(64px, 10vh, 108px) 42px;
+    justify-items: center;
+    gap: clamp(28px, 5vh, 48px);
+    padding-block: clamp(20px, 4vh, 40px) clamp(16px, 3vh, 28px);
+    width: 100%;
   }
 
   .waiting-copy,
@@ -5193,10 +5197,6 @@ body[data-scene="memory"] .orb-b {
     transform: rotate(-2deg) scale(.98);
   }
 
-  .waiting-layout {
-    padding-block: clamp(54px, 9vh, 80px) 24px;
-  }
-
   .waiting-copy h1,
   .gift-copy h1,
   .success-screen h1 {
@@ -5212,12 +5212,40 @@ body[data-scene="memory"] .orb-b {
     font-size: clamp(16px, 4.5vw, 19px);
   }
 
+  .waiting-layout {
+    padding-block: clamp(16px, 3vh, 28px) clamp(12px, 2vh, 20px);
+    gap: clamp(22px, 4vh, 36px);
+  }
+
+  .wait-footer {
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
   .countdown-visual,
   .time-ring {
-    width: min(68vw, 252px);
-    height: min(68vw, 252px);
+    width: min(72vw, 240px);
+    height: min(72vw, 240px);
     min-width: 0;
     min-height: 0;
+  }
+
+  .countdown-visual .time-number {
+    font-size: clamp(44px, 18vw, 68px);
+    line-height: 1;
+    letter-spacing: -.04em;
+    padding: 0 4px;
+  }
+
+  .countdown-visual .time-unit {
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: .2em;
+  }
+
+  .countdown-target {
+    margin-top: 14px;
+    font-size: clamp(20px, 5.5vw, 26px);
   }
 
   .time-detail {

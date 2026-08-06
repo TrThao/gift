@@ -34,15 +34,13 @@
 
   <div class="scene-transition" id="sceneTransition" aria-hidden="true">
     <div class="bridge-lines" id="bridgeLines" aria-live="polite">
-      <p>Có lẽ...</p>
-      <p>Những điều</p>
-      <p>anh muốn nói</p>
-      <p>đã gần hết.</p>
+      <p>Đủ rồi.</p>
       <p>...</p>
-      <p>Nhưng...</p>
+      <p>Năm lời ước</p>
+      <p>đã gom đủ.</p>
       <p>...</p>
-      <p>Còn</p>
-      <p>một bất ngờ cuối.</p>
+      <p>Giờ thì</p>
+      <p>đến món quà nhé.</p>
     </div>
   </div>
 
@@ -649,42 +647,44 @@
       <div class="memory-stars" id="memoryStars" aria-hidden="true"></div>
 
       <div class="memory-wrap">
-        <p class="kicker">TRƯỚC KHI ĐẾN MÓN QUÀ</p>
-        <h1 class="memory-title">Anh còn cất vài câu ở đây.</h1>
+        <p class="kicker">TRƯỚC MÓN QUÀ</p>
+        <h1 class="memory-title">Anh còn một việc nữa.</h1>
 
         <div class="memory-lines">
-          <p>Anh vẫn còn vài điều muốn giữ lại.</p>
-          <p>Có những câu để ở đây sẽ thú vị hơn.</p>
-          <p>Mỗi ngôi sao sẽ mở ra một câu nhỏ anh dành cho em.</p>
+          <p>Trước khi tặng quà...</p>
+          <p>...</p>
+          <p>Giúp anh gom</p>
+          <p>năm lời ước nhỏ</p>
+          <p>cho hôm nay.</p>
         </div>
 
         <p class="star-guide">
-          Có <strong>5 ngôi sao</strong> anh giấu riêng cho em. Mỗi lần chỉ một ngôi hiện ra —
-          đọc thật chậm, rồi giữ lại để xem lại bất cứ lúc nào.
+          Có <strong>5 ngôi sao</strong> đang chờ em. Mỗi lần chỉ một ngôi sáng —
+          chạm để gom một lời ước.
         </p>
 
-        <div class="star-map" id="starMap" role="application" aria-label="Bầu trời có năm ngôi sao đặc biệt"></div>
+        <div class="star-map" id="starMap" role="application" aria-label="Bầu trời có năm lời ước"></div>
 
-        <div class="star-progress" id="starProgress" aria-label="Tiến độ tìm sao">
-          <button type="button" data-star="0" disabled aria-label="Ngôi sao 1 chưa mở"></button>
-          <button type="button" data-star="1" disabled aria-label="Ngôi sao 2 chưa mở"></button>
-          <button type="button" data-star="2" disabled aria-label="Ngôi sao 3 chưa mở"></button>
-          <button type="button" data-star="3" disabled aria-label="Ngôi sao 4 chưa mở"></button>
-          <button type="button" data-star="4" disabled aria-label="Ngôi sao 5 chưa mở"></button>
+        <div class="star-progress" id="starProgress" aria-label="Tiến độ gom lời ước">
+          <button type="button" data-star="0" disabled aria-label="Lời ước 1 chưa gom"></button>
+          <button type="button" data-star="1" disabled aria-label="Lời ước 2 chưa gom"></button>
+          <button type="button" data-star="2" disabled aria-label="Lời ước 3 chưa gom"></button>
+          <button type="button" data-star="3" disabled aria-label="Lời ước 4 chưa gom"></button>
+          <button type="button" data-star="4" disabled aria-label="Lời ước 5 chưa gom"></button>
           <small class="star-counter" id="starCounter">0 / 5</small>
         </div>
 
         <div class="star-message" id="starMessage">
-          Có một ngôi sao đang sáng khác thường. Thử tìm nó nhé.
+          Có một ngôi sáng lên. Thử chạm vào đó nhé.
         </div>
 
         <aside class="star-keepsake hidden" id="starKeepsake">
-          <p class="star-keepsake-label">Những câu đã giữ lại</p>
+          <p class="star-keepsake-label">Những lời ước đã gom</p>
           <div class="star-keepsake-list" id="starKeepsakeList"></div>
         </aside>
 
         <button class="button button-light memory-next is-disabled" id="memoryNextButton" type="button" disabled>
-          <span>Bây giờ mới đến món quà</span>
+          <span>Đi tới món quà</span>
           <span>→</span>
         </button>
       </div>
@@ -692,10 +692,10 @@
       <div class="star-reveal-overlay hidden" id="starRevealOverlay" role="dialog" aria-modal="true">
         <div class="star-reveal-card">
           <span class="reveal-star-mark" aria-hidden="true">✦</span>
-          <small id="starRevealCount">NGÔI SAO 01 · 05</small>
+          <small id="starRevealCount">LỜI ƯỚC 01 · 05</small>
           <p id="starRevealText"></p>
           <button class="button button-light reveal-continue" id="starRevealContinue" type="button">
-            <span id="starRevealContinueLabel">Giữ lại câu này</span>
+            <span id="starRevealContinueLabel">Gom lời này</span>
             <span>→</span>
           </button>
         </div>
