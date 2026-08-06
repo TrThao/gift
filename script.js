@@ -2,6 +2,13 @@ const PASSWORD = "1608";
 const DEFAULT_MONTH = 7;
 const DEFAULT_DAY = 16;
 const RECIPIENT_NAME = "Ánh";
+const ASSET_CACHE_BUST = Date.now();
+
+function bustAssetUrl(path) {
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}t=${ASSET_CACHE_BUST}`;
+}
+
 const prefersReducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isLowPowerDevice =
   prefersReducedMotion ||
@@ -415,7 +422,7 @@ const initializedDrawnScenes = new WeakSet();
    rồi keyframe sketchDraw đưa dashoffset về 0. */
 function initDrawnScene(bqPhase) {
   const scene = bqPhase?.querySelector(".drawn-scene");
-  if (!scene || initializedDrawnScenes.has(scene)) return;
+  if (!scene) return;
   scene.querySelectorAll(".draw-line").forEach(el => {
     if (typeof el.getTotalLength !== "function") return;
     const len = el.getTotalLength();
@@ -424,6 +431,28 @@ function initDrawnScene(bqPhase) {
     el.style.strokeDashoffset = `${len}`;
   });
   initializedDrawnScenes.add(scene);
+}
+
+function resetDrawnScenePaths(bqPhase) {
+  const scene = bqPhase?.querySelector(".drawn-scene");
+  if (!scene) return;
+  scene.querySelectorAll(".draw-line").forEach(el => {
+    const len = parseFloat(el.style.strokeDasharray);
+    if (!Number.isFinite(len) || len <= 0) {
+      if (typeof el.getTotalLength !== "function") return;
+      const measured = el.getTotalLength();
+      if (!Number.isFinite(measured) || measured <= 0) return;
+      el.style.strokeDasharray = `${measured}`;
+      el.style.strokeDashoffset = `${measured}`;
+    } else {
+      el.style.strokeDashoffset = `${len}`;
+    }
+    el.style.animation = "none";
+  });
+  void scene.offsetWidth;
+  scene.querySelectorAll(".draw-line").forEach(el => {
+    el.style.animation = "";
+  });
 }
 
 function resetGiftCinematic() {
@@ -435,9 +464,10 @@ function resetGiftCinematic() {
   const continueBtn = document.getElementById("giftCinematicContinue");
   const veil = document.getElementById("giftCinematicVeil");
 
+  resetDrawnScenePaths(bqPhase);
+
   cinematic?.classList.remove("is-active", "phase-fireworks", "phase-bouquet", "phase-handoff", "is-revealing");
   cinematic?.setAttribute("aria-hidden", "true");
-  fwPhase?.classList.remove("hidden");
   fwPhase?.setAttribute("aria-hidden", "true");
   bqPhase?.classList.add("hidden");
   bqPhase?.classList.remove("is-playing");
@@ -743,7 +773,7 @@ function fadeAmbientVolume(target, durationMs = 800) {
 
 function ensureAmbientAudio() {
   if (ambientAudio) return ambientAudio;
-  ambientAudio = new Audio(AMBIENT_FILE);
+  ambientAudio = new Audio(bustAssetUrl(AMBIENT_FILE));
   ambientAudio.loop = true;
   ambientAudio.preload = "none";
   ambientAudio.playsInline = true;
@@ -875,7 +905,7 @@ const sfxPrefetch = {};
 /* Bắt đầu tải file WAV ngay khi script chạy — không cần đợi user tap.
    ArrayBuffer sẽ được cache sẵn, chỉ decode lúc unlock audio. */
 Object.entries(SFX_FILES).forEach(([name, url]) => {
-  sfxPrefetch[name] = fetch(url)
+  sfxPrefetch[name] = fetch(bustAssetUrl(url))
     .then(res => (res.ok ? res.arrayBuffer() : null))
     .catch(() => null);
 });
@@ -1028,7 +1058,7 @@ async function loadSfxFile(name) {
         if (prefetched) data = prefetched.slice(0); // decodeAudioData transfers/consumes ArrayBuffer
       }
       if (!data) {
-        const res = await fetch(url);
+        const res = await fetch(bustAssetUrl(url));
         if (!res.ok) throw new Error(`SFX fetch failed: ${name}`);
         data = await res.arrayBuffer();
       }
@@ -1107,9 +1137,17 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-window.addEventListener("pageshow", () => {
+window.addEventListener("pageshow", (event) => {
   if (audioCtx && (audioCtx.state === "suspended" || audioCtx.state === "interrupted")) {
     audioCtx.resume().catch(() => {});
+  }
+  if (event.persisted) {
+    clearInterval(timer);
+    tick();
+    if (!preludeStarted && screens.waiting && !screens.waiting.classList.contains("hidden")) {
+      timer = setInterval(tick, 1000);
+    }
+    if (!document.hidden && fxParticles.length > 0) ensureFxRunning();
   }
 });
 
@@ -1615,6 +1653,35 @@ function clearPreludeTimers() {
   preludeTimers = [];
 }
 
+function resetPreludeUI() {
+  clearPreludeTimers();
+  if (holdStart) {
+    cancelHold();
+  } else {
+    holdStart = 0;
+    if (holdFrame) cancelAnimationFrame(holdFrame);
+    holdFrame = null;
+    stopPulseHold();
+  }
+
+  const holdZone = document.getElementById("holdZone");
+  const holdButton = document.getElementById("holdButton");
+  const fragments = document.getElementById("revealFragments");
+  const fpStatus = document.getElementById("fingerprintStatus");
+
+  holdZone?.classList.add("hidden");
+  fragments?.classList.remove("active");
+  document.querySelectorAll("#preludeLines p").forEach(line => {
+    line.classList.remove("visible", "dimmed");
+  });
+
+  if (holdButton) {
+    holdButton.classList.remove("holding", "completed");
+    holdButton.style.setProperty("--scan-progress", 0);
+  }
+  if (fpStatus) fpStatus.textContent = "Đặt tay lên đây";
+}
+
 function animateHeadline(text) {
   if (text === lastAnimatedTitle) return;
   lastAnimatedTitle = text;
@@ -1807,7 +1874,7 @@ function tick() {
 
 function start() {
   clearInterval(timer);
-  clearPreludeTimers();
+  resetPreludeUI();
   preludeStarted = false;
   lastAnimatedTitle = "";
   passcode = "";
@@ -1910,30 +1977,6 @@ function showPasscodeError() {
   }, 480);
 
   passcode = "";
-  giftStep = 0;
-  giftUnlocked = false;
-  openedStarNodes = new Set();
-
-  const gift = document.getElementById("giftObject");
-  if (gift) gift.className = "luxury-gift";
-  const giftScreen = document.getElementById("giftScreen");
-  if (giftScreen) giftScreen.classList.add("locked");
-  const giftInstruction = document.getElementById("giftInstruction");
-  if (giftInstruction) giftInstruction.textContent = "Chiếc hộp vẫn đang khóa. Chạm vào để mở khóa";
-
-  const claim = document.getElementById("claimGiftButton");
-  if (claim) {
-    claim.disabled = true;
-    claim.classList.add("is-disabled");
-  }
-
-  const memoryNext = document.getElementById("memoryNextButton");
-  if (memoryNext) {
-    memoryNext.disabled = true;
-    memoryNext.classList.add("is-disabled");
-  }
-
-  resetStarGame();
   updatePasscode();
 }
 
@@ -2398,32 +2441,39 @@ async function playMemoryGiftBridge() {
 
   if (nextBtn) nextBtn.disabled = true;
 
-  lines.forEach(line => line.classList.remove("is-visible", "is-dimmed"));
-  overlay.classList.add("is-bridge");
-  overlay.setAttribute("aria-hidden", "false");
+  try {
+    lines.forEach(line => line.classList.remove("is-visible", "is-dimmed"));
+    overlay.classList.add("is-bridge");
+    overlay.setAttribute("aria-hidden", "false");
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => overlay.classList.add("active"));
-  });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => overlay.classList.add("active"));
+    });
 
-  await sleep(900);
+    await sleep(900);
 
-  for (let i = 0; i < lines.length; i++) {
-    if (i > 0) {
-      lines[i - 1].classList.remove("is-visible");
-      lines[i - 1].classList.add("is-dimmed");
-      await sleep(320);
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0) {
+        lines[i - 1].classList.remove("is-visible");
+        lines[i - 1].classList.add("is-dimmed");
+        await sleep(320);
+      }
+      lines[i].classList.remove("is-dimmed");
+      lines[i].classList.add("is-visible");
+      await sleep(BRIDGE_LINE_PAUSES[i]);
     }
-    lines[i].classList.remove("is-dimmed");
-    lines[i].classList.add("is-visible");
-    await sleep(BRIDGE_LINE_PAUSES[i]);
+
+    overlay.classList.remove("active");
+    await sleep(580);
+
+    resetMemoryGiftBridge();
+    await playGiftGivingCinematic();
+  } finally {
+    if (nextBtn && openedStarNodes.size >= starTexts.length) {
+      nextBtn.disabled = false;
+      nextBtn.classList.remove("is-disabled");
+    }
   }
-
-  overlay.classList.remove("active");
-  await sleep(580);
-
-  resetMemoryGiftBridge();
-  await playGiftGivingCinematic();
 }
 
 document.getElementById("memoryNextButton").addEventListener("click", () => {
