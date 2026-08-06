@@ -24,20 +24,13 @@ function scaledFxCount(count, minimum = 1) {
   return Math.max(minimum, Math.round(count * FX_DENSITY));
 }
 
-function showGiftSuccess() {
-  document.getElementById("successDate").textContent =
-    `${pad(targetDate.getDate())} · ${pad(targetDate.getMonth() + 1)}`;
-  showScreen("success");
-  buildPolaroidRow();
-  playSfx("sparkle", { volume: 0.45 });
-  vibrate([30, 20, 50]);
-}
+let giftFinalePlaying = false;
 
 /* ═══════════════════════════════════════════════════════════════
    V7 — Cinematic engine
    FX canvas (fireflies, petals, sparkles), scene palette,
    ambient audio pad, envelope, typewriter letter, constellation,
-   keepsake canvas, vibration, cursor trail.
+   vibration, cursor trail.
    ═══════════════════════════════════════════════════════════════ */
 
 const SCENE_MAP = {
@@ -46,8 +39,7 @@ const SCENE_MAP = {
   prelude: "prelude",
   letter: "letter",
   memory: "memory",
-  gift: "gift",
-  success: "success"
+  gift: "gift"
 };
 
 function setScene(name) {
@@ -740,8 +732,7 @@ const AMBIENT_LEVELS = {
   prelude: 0.18,
   letter: 0.14,
   memory: 0.17,
-  gift: 0.19,
-  success: 0.2
+  gift: 0.19
 };
 
 function getAmbientLevel(scene = currentAmbientScene) {
@@ -1202,13 +1193,38 @@ function captureLetterHTML() {
   `;
 
   originalLetterParagraphs.push(
-    { cls: "letter-salutation", text: "Gửi Ánh," },
-    { cls: "letter-paragraph", text: "Anh không biết bắt đầu từ đâu, nên anh làm trang này để em mở từng chút một, theo nhịp của em." },
-    { cls: "letter-paragraph", text: "Những điều anh nhớ về em thường rất nhỏ: cách em kể chuyện, lúc em cười, lúc em yên. Chúng không lớn, nhưng đủ để anh để ý." },
-    { cls: "letter-paragraph", text: "Hôm nay anh chỉ muốn em vui một chút. Không cần lý do, cũng không cần câu trả lời nào." },
-    { cls: "letter-paragraph", text: "Mong những ngày tới của em đầy những điều dễ thương — và thỉnh thoảng, trong vài khoảnh khắc đó, anh cũng được xuất hiện một chút." },
-    { cls: "letter-ending", text: "Chúc Ánh sinh nhật thật dịu dàng." },
-    { cls: "signature", text: "— Anh" }
+    { cls: "letter-paragraph", text: "Anh đã nghĩ rất lâu." },
+    { cls: "letter-paragraph", text: "Không biết" },
+    { cls: "letter-paragraph", text: "nên tặng em điều gì." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "Mua một món quà" },
+    { cls: "letter-paragraph", text: "thì rất dễ." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "Nhưng anh muốn" },
+    { cls: "letter-paragraph", text: "làm một thứ" },
+    { cls: "letter-paragraph", text: "chỉ dành riêng cho em." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "Cảm ơn" },
+    { cls: "letter-paragraph", text: "vì một trận game" },
+    { cls: "letter-paragraph", text: "rất bình thường." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "Đã giúp anh" },
+    { cls: "letter-paragraph", text: "quen được" },
+    { cls: "letter-paragraph", text: "một người" },
+    { cls: "letter-paragraph", text: "rất đặc biệt." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "Hôm nay" },
+    { cls: "letter-paragraph", text: "anh chỉ mong" },
+    { cls: "letter-paragraph", text: "em thật vui." },
+    { cls: "letter-paragraph", text: "Thật nhiều tiếng cười." },
+    { cls: "letter-paragraph", text: "Thật nhiều may mắn." },
+    { cls: "letter-paragraph", text: "Và có" },
+    { cls: "letter-paragraph", text: "một tuổi mới" },
+    { cls: "letter-paragraph", text: "thật hạnh phúc." },
+    { cls: "letter-paragraph", text: "..." },
+    { cls: "letter-paragraph", text: "À..." },
+    { cls: "letter-paragraph", text: "Anh còn" },
+    { cls: "letter-paragraph", text: "một điều nữa." }
   );
 }
 
@@ -1497,8 +1513,7 @@ const screens = {
   prelude: document.getElementById("preludeScreen"),
   letter: document.getElementById("letterScreen"),
   memory: document.getElementById("memoryScreen"),
-  gift: document.getElementById("giftScreen"),
-  success: document.getElementById("successScreen")
+  gift: document.getElementById("giftScreen")
 };
 
 const currentDateInput = document.getElementById("currentDate");
@@ -1895,12 +1910,6 @@ function start() {
   const giftInstruction = document.getElementById("giftInstruction");
   if (giftInstruction) giftInstruction.textContent = "Chiếc hộp vẫn đang khóa. Chạm vào để mở khóa";
 
-  const claim = document.getElementById("claimGiftButton");
-  if (claim) {
-    claim.disabled = true;
-    claim.classList.add("is-disabled");
-  }
-
   const memoryNext = document.getElementById("memoryNextButton");
   if (memoryNext) {
     memoryNext.disabled = true;
@@ -1911,6 +1920,7 @@ function start() {
   resetMemoryGiftBridge();
   resetGiftCinematic();
   resetGiftFireworkFlash();
+  resetGiftFinale();
 
   resetPasscodeUI();
   updatePasscode();
@@ -2074,11 +2084,11 @@ let activeTargetStar = null;
 let starGameStarted = false;
 
 const starTexts = [
-  "Anh thích cách em làm những điều rất bình thường cũng trở nên dễ thương hơn.",
-  "Từ lúc bắt đầu làm trang này, anh đã luôn tò mò không biết em sẽ cười thế nào khi mở đến đây.",
-  "Có lẽ điều anh thích nhất là việc anh quan tâm đến em một cách rất tự nhiên, chẳng cần phải cố.",
-  "Anh mong Ánh sẽ luôn rạng rỡ như chính cái tên của em.",
-  "Và anh thật lòng mong đây sẽ không phải lần cuối anh được chuẩn bị một điều gì đó riêng cho em."
+  "Trận game đầu tiên.\nAnh vẫn nhớ.",
+  "Em chắc quên rồi.\nAnh thì chưa.",
+  "Những lần\nchơi tới khuya.",
+  "Cảm ơn\nvì luôn rủ anh.",
+  "Hy vọng\nsẽ còn\nnhiều trận nữa."
 ];
 
 /* Placed on the heart silhouette so once all found, the drawn heart passes through them:
@@ -2321,7 +2331,8 @@ function openStarReveal(index, isReread = false) {
 
   document.getElementById("starRevealCount").textContent =
     `NGÔI SAO ${String(index + 1).padStart(2, "0")} · 05`;
-  document.getElementById("starRevealText").textContent = starTexts[index];
+  document.getElementById("starRevealText").innerHTML =
+    starTexts[index].replace(/\n/g, "<br>");
 
   if (isReread) {
     label.textContent = "Đóng lại";
@@ -2431,6 +2442,100 @@ function resetMemoryGiftBridge() {
   lines.forEach(line => line.classList.remove("is-visible", "is-dimmed"));
 }
 
+function resetGiftFinale() {
+  giftFinalePlaying = false;
+  const overlay = document.getElementById("giftFinaleOverlay");
+  const blessing = document.getElementById("giftBlessingLines");
+  const ending = document.getElementById("giftEndingLines");
+
+  overlay?.classList.remove("active", "is-bridge");
+  overlay?.setAttribute("aria-hidden", "true");
+  overlay?.style.removeProperty("opacity");
+  overlay?.style.removeProperty("background");
+  overlay?.style.removeProperty("transition");
+
+  blessing?.classList.remove("hidden");
+  ending?.classList.add("hidden");
+  blessing?.querySelectorAll("p").forEach(p => p.classList.remove("is-visible", "is-dimmed"));
+  ending?.querySelectorAll("p").forEach(p => p.classList.remove("is-visible", "is-dimmed"));
+
+  document.body.style.removeProperty("background");
+  document.body.style.removeProperty("transition");
+  document.body.style.removeProperty("pointer-events");
+  const shell = document.querySelector(".shell");
+  if (shell) shell.style.removeProperty("pointer-events");
+}
+
+async function playGiftFinale() {
+  if (giftFinalePlaying) return;
+  giftFinalePlaying = true;
+
+  const overlay = document.getElementById("giftFinaleOverlay");
+  const blessing = document.getElementById("giftBlessingLines");
+  const ending = document.getElementById("giftEndingLines");
+  const lines = [...blessing?.querySelectorAll("p") ?? []];
+  const instruction = document.getElementById("giftInstruction");
+
+  if (instruction) instruction.textContent = "";
+
+  ensureAudio();
+  unlockAmbientFromGesture();
+  fadeAmbientVolume(0.12, 1800);
+
+  overlay?.classList.add("is-bridge");
+  overlay?.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => overlay?.classList.add("active"));
+
+  await sleep(700);
+
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) {
+      lines[i - 1].classList.remove("is-visible");
+      lines[i - 1].classList.add("is-dimmed");
+      await sleep(280);
+    }
+    lines[i].classList.remove("is-dimmed");
+    lines[i].classList.add("is-visible");
+    const pause = lines[i].textContent === "..." ? 480 : 820;
+    await sleep(pause);
+  }
+
+  await sleep(700);
+
+  blessing?.classList.add("hidden");
+  ending?.classList.remove("hidden");
+  const endingLine = ending?.querySelector("p");
+  if (endingLine) endingLine.classList.add("is-visible");
+
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight * 0.42;
+  spawnFireflies(cx, cy, 70);
+  spawnSparkleBurst(cx, cy, 24);
+  playSfx("sparkle", { volume: 0.42 });
+  vibrate([35, 45, 35]);
+
+  setTimeout(() => spawnFireflies(window.innerWidth * 0.3, window.innerHeight * 0.5, 30), 800);
+  setTimeout(() => spawnFireflies(window.innerWidth * 0.7, window.innerHeight * 0.35, 28), 1600);
+  setTimeout(() => spawnPetals(20), 500);
+
+  await sleep(5000);
+
+  document.body.style.transition = "background 2.5s ease";
+  document.body.style.background = "#000";
+  if (overlay) {
+    overlay.style.transition = "background 2.5s ease";
+    overlay.style.background = "#000";
+  }
+  fadeAmbientVolume(0.06, 3000);
+
+  await sleep(2600);
+
+  overlay?.classList.remove("active");
+  const shell = document.querySelector(".shell");
+  if (shell) shell.style.pointerEvents = "none";
+  document.body.style.pointerEvents = "none";
+}
+
 async function playMemoryGiftBridge() {
   const overlay = document.getElementById("sceneTransition");
   const lines = [...document.querySelectorAll("#bridgeLines p")];
@@ -2459,7 +2564,7 @@ async function playMemoryGiftBridge() {
       }
       lines[i].classList.remove("is-dimmed");
       lines[i].classList.add("is-visible");
-      await sleep(BRIDGE_LINE_PAUSES[i]);
+      await sleep(lines[i].textContent === "..." ? 500 : (BRIDGE_LINE_PAUSES[i] ?? 900));
     }
 
     overlay.classList.remove("active");
@@ -2512,7 +2617,6 @@ document.getElementById("giftObject").addEventListener("click", () => {
   const gift = document.getElementById("giftObject");
   const giftScreen = document.getElementById("giftScreen");
   const instruction = document.getElementById("giftInstruction");
-  const claim = document.getElementById("claimGiftButton");
 
   if (!giftUnlocked) {
     giftScreen.classList.remove("lock-shake");
@@ -2562,13 +2666,8 @@ document.getElementById("giftObject").addEventListener("click", () => {
   playSfx("sparkle", { volume: 0.5, when: 0.15 });
   vibrate([50, 40, 90]);
   spawnPetals(40);
-  instruction.textContent = "Món quà đã mở. Chạm để nhận nhé";
-  claim.disabled = false;
-  claim.classList.remove("is-disabled");
-});
-
-document.getElementById("claimGiftButton").addEventListener("click", () => {
-  showGiftSuccess();
+  if (instruction) instruction.textContent = "";
+  setTimeout(() => playGiftFinale(), 900);
 });
 
 document.getElementById("giftCinematicContinue")?.addEventListener("click", async () => {
@@ -2577,164 +2676,6 @@ document.getElementById("giftCinematicContinue")?.addEventListener("click", asyn
   await playGiftHandoffReveal();
   giftCinematicRunning = false;
 });
-
-function buildPolaroidRow() {
-  const row = document.getElementById("polaroidRow");
-  if (!row) return;
-  row.innerHTML = "";
-  const shortLines = [
-    "cách em kể chuyện",
-    "lúc em vui rất tự nhiên",
-    "khi anh nhớ về em",
-    "ánh mắt em rạng rỡ",
-    "một điều nhỏ · dành cho em"
-  ];
-  const marks = ["1", "2", "3", "4", "♥"];
-  shortLines.forEach((cap, i) => {
-    const p = document.createElement("div");
-    p.className = "polaroid";
-    p.innerHTML = `
-      <div class="polaroid-photo">
-        <span class="polaroid-photo-mark">${marks[i]}</span>
-      </div>
-      <p class="polaroid-caption">${cap}</p>
-    `;
-    row.appendChild(p);
-  });
-}
-
-document.getElementById("restartButton").addEventListener("click", () => {
-  start();
-});
-
-/* ═════════════════ Keepsake canvas ═════════════════ */
-const keepsakeSaveBtn = document.getElementById("keepsakeSaveButton");
-if (keepsakeSaveBtn) {
-  keepsakeSaveBtn.addEventListener("click", downloadKeepsake);
-}
-
-function downloadKeepsake() {
-  const canvas = document.getElementById("keepsakeCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width;
-  const H = canvas.height;
-
-  // Background — warm gradient
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, "#1c1512");
-  bg.addColorStop(0.5, "#2b1f18");
-  bg.addColorStop(1, "#12100f");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // Soft radial glow top right
-  const glow = ctx.createRadialGradient(W * .8, H * .15, 20, W * .8, H * .15, 700);
-  glow.addColorStop(0, "rgba(229, 181, 127, .35)");
-  glow.addColorStop(1, "rgba(229, 181, 127, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, W, H);
-
-  // Grain-ish speckles (stars)
-  ctx.fillStyle = "rgba(255, 230, 190, .18)";
-  for (let i = 0; i < 200; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 1.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Header
-  ctx.fillStyle = "rgba(239, 217, 176, .68)";
-  ctx.font = "500 24px 'DM Sans', system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("MỘT KỶ NIỆM NHỎ", W / 2, 100);
-
-  // Title
-  ctx.fillStyle = "#f5e6cf";
-  ctx.font = "italic 500 82px 'Playfair Display', Georgia, serif";
-  ctx.fillText(`Dành cho ${RECIPIENT_NAME}`, W / 2, 220);
-
-  // Date
-  const dateStr = `${pad(targetDate.getDate())} · ${pad(targetDate.getMonth() + 1)} · ${targetDate.getFullYear()}`;
-  ctx.fillStyle = "rgba(239, 217, 176, .78)";
-  ctx.font = "500 32px 'DM Sans', system-ui, sans-serif";
-  ctx.fillText(dateStr, W / 2, 288);
-
-  // Divider
-  ctx.strokeStyle = "rgba(239, 217, 176, .28)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 60, 340);
-  ctx.lineTo(W / 2 + 60, 340);
-  ctx.stroke();
-
-  // Section label
-  ctx.fillStyle = "rgba(239, 217, 176, .55)";
-  ctx.font = "500 22px 'DM Sans', system-ui, sans-serif";
-  ctx.fillText("NĂM CÂU ANH GIỮ LẠI", W / 2, 400);
-
-  // Star texts
-  ctx.textAlign = "left";
-  ctx.fillStyle = "#efe0c6";
-  ctx.font = "italic 500 30px 'Playfair Display', Georgia, serif";
-  const marginX = 100;
-  let y = 470;
-  const maxWidth = W - marginX * 2;
-
-  starTexts.forEach((text, i) => {
-    ctx.fillStyle = "rgba(229, 181, 127, .82)";
-    ctx.font = "600 20px 'DM Sans', system-ui, sans-serif";
-    ctx.fillText(`✦  Ngôi sao ${String(i + 1).padStart(2, "0")}`, marginX, y);
-    y += 40;
-    ctx.fillStyle = "#efe0c6";
-    ctx.font = "italic 500 28px 'Playfair Display', Georgia, serif";
-    y = wrapText(ctx, text, marginX, y, maxWidth, 42);
-    y += 42;
-  });
-
-  // Footer handwriting
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(239, 217, 176, .82)";
-  ctx.font = "500 44px 'Caveat', cursive";
-  ctx.fillText("— Anh", W / 2, H - 90);
-
-  ctx.fillStyle = "rgba(239, 217, 176, .38)";
-  ctx.font = "500 16px 'DM Sans', system-ui, sans-serif";
-  ctx.fillText("một điều nhỏ · lưu lại", W / 2, H - 44);
-
-  // Trigger download
-  canvas.toBlob(blob => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ki-niem-${RECIPIENT_NAME.toLowerCase()}-${targetDate.getFullYear()}${pad(targetDate.getMonth() + 1)}${pad(targetDate.getDate())}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 500);
-  }, "image/png", 0.95);
-
-  playSfx("sparkle", { volume: 0.5 });
-  vibrate(40);
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
-  let line = "";
-  for (const word of words) {
-    const test = line ? line + " " + word : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      line = word;
-      y += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  if (line) ctx.fillText(line, x, y);
-  return y;
-}
 
 const demoPanel = document.getElementById("demoPanel");
 

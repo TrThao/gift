@@ -34,9 +34,41 @@
 
   <div class="scene-transition" id="sceneTransition" aria-hidden="true">
     <div class="bridge-lines" id="bridgeLines" aria-live="polite">
-      <p>Đến đây rồi...</p>
-      <p>À...</p>
-      <p>Đến lúc anh tặng em món quà rồi. 🎁</p>
+      <p>Có lẽ...</p>
+      <p>Những điều</p>
+      <p>anh muốn nói</p>
+      <p>đã gần hết.</p>
+      <p>...</p>
+      <p>Nhưng...</p>
+      <p>...</p>
+      <p>Còn</p>
+      <p>một bất ngờ cuối.</p>
+    </div>
+  </div>
+
+  <div class="scene-transition" id="giftFinaleOverlay" aria-hidden="true">
+    <div class="bridge-lines" id="giftBlessingLines" aria-live="polite">
+      <p>🎂 Happy Birthday!</p>
+      <p>...</p>
+      <p>Chúc em</p>
+      <p>luôn cười thật nhiều.</p>
+      <p>...</p>
+      <p>Luôn gặp</p>
+      <p>những điều tốt đẹp.</p>
+      <p>...</p>
+      <p>Cảm ơn</p>
+      <p>vì đã xuất hiện</p>
+      <p>trong một trận game</p>
+      <p>rất bình thường.</p>
+      <p>...</p>
+      <p>Hy vọng</p>
+      <p>sẽ còn</p>
+      <p>nhiều lần</p>
+      <p>được chơi game</p>
+      <p>cùng em.</p>
+    </div>
+    <div class="bridge-lines hidden" id="giftEndingLines" aria-live="polite">
+      <p>Happy Birthday, Ánh ❤️</p>
     </div>
   </div>
 
@@ -191,7 +223,7 @@
           </g>
         </svg>
 
-        <p class="bouquet-caption">Một bó hoa để em mỉm cười,<br>và một món quà nhỏ anh dành riêng cho em.</p>
+        <p class="bouquet-caption">Happy Birthday.</p>
 
         <button class="button button-light gift-cinematic-continue" id="giftCinematicContinue" type="button">
           <span>Tiếp tục</span>
@@ -394,10 +426,16 @@
 
     <section class="screen prelude-screen hidden" id="preludeScreen">
       <div class="prelude-lines" id="preludeLines" aria-live="polite">
-        <p data-line="0">Hôm nay cuối cùng cũng đến rồi.</p>
-        <p data-line="1">Anh đã giữ phần này lại khá lâu.</p>
-        <p data-line="2">Nếu người đang ở đây là Ánh...</p>
-        <p data-line="3">Hãy đặt tay lên đây nhé.</p>
+        <p data-line="0">Hôm nay...</p>
+        <p data-line="1">Anh có chuẩn bị</p>
+        <p data-line="2">một món quà nhỏ.</p>
+        <p data-line="3">...</p>
+        <p data-line="4">Nhưng...</p>
+        <p data-line="5">...</p>
+        <p data-line="6">Đừng vội nhé.</p>
+        <p data-line="7">...</p>
+        <p data-line="8">Ở lại với anh</p>
+        <p data-line="9">thêm một chút.</p>
       </div>
 
       <div class="hold-zone hidden" id="holdZone">
@@ -689,40 +727,7 @@
         <div class="gift-instruction" id="giftInstruction">
           Chiếc hộp vẫn đang khóa. Chạm vào để mở khóa
         </div>
-
-        <button class="button button-light claim-button is-disabled" id="claimGiftButton" type="button" disabled>
-          <span>Nhận món quà</span>
-          <span>→</span>
-        </button>
       </div>
-    </section>
-
-    <section class="screen success-screen hidden" id="successScreen">
-      <div class="success-line"></div>
-      <p class="kicker">XONG RỒI</p>
-      <h1>Món quà đã đến nơi.</h1>
-      <p class="lead">
-        Nhớ kiểm tra MoMo nhé.<br>
-        Hy vọng điều nhỏ này khiến hôm nay của em vui hơn một chút.
-      </p>
-
-      <div class="success-date" id="successDate">16 · 08</div>
-
-      <div class="polaroid-row" id="polaroidRow" aria-hidden="true"></div>
-
-      <p class="handwritten-signoff" id="handwrittenSignoff">Cảm ơn em đã đi tới đây, Ánh.</p>
-
-      <div class="success-actions">
-        <button class="button button-light keepsake-save" id="keepsakeSaveButton" type="button">
-          <span>Lưu lại kỷ niệm</span>
-          <span>↓</span>
-        </button>
-        <button class="text-button restart-button" id="restartButton" type="button">
-          Xem lại từ đầu
-        </button>
-      </div>
-
-      <canvas id="keepsakeCanvas" width="1080" height="1350" hidden></canvas>
     </section>
   </main>
   <script>
