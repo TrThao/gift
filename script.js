@@ -1203,12 +1203,11 @@ function captureLetterHTML() {
 
   originalLetterParagraphs.push(
     { cls: "letter-salutation", text: "Gửi Ánh," },
-    { cls: "letter-paragraph", text: "Anh đã nghĩ khá lâu xem nên viết gì cho em trong ngày hôm nay. Một lời chúc bình thường thì có vẻ hơi nhanh, còn một bức thư quá dài lại dễ thành cầu kỳ. Cuối cùng, anh chọn làm trang này để em có thể mở từng phần thật chậm, theo cách riêng của em." },
-    { cls: "letter-paragraph", text: "Có lẽ từ lúc nào đó, anh bắt đầu để ý đến những điều rất nhỏ: cách em kể một câu chuyện, lúc em vui, lúc em yên lặng, hay những lần em vô tình khiến không khí xung quanh trở nên nhẹ hơn. Những điều ấy không quá lớn, nhưng đủ để anh nhớ." },
-    { cls: "letter-paragraph", text: "Anh chỉ mong khi mở đến đây, em sẽ thấy vui một chút. Không cần phải nghĩ quá nhiều về lý do, cũng không cần phải tìm một câu trả lời nào cả. Cứ xem đây là một điều nhỏ được chuẩn bị riêng cho em là được." },
-    { cls: "letter-paragraph", text: "Anh mong những tháng ngày sắp tới của em sẽ có thật nhiều điều dễ thương: những buổi đi chơi vui vẻ, những món ăn ngon, những tin nhắn khiến em bất giác mỉm cười, và những ngày trôi qua nhẹ nhàng hơn một chút." },
-    { cls: "letter-paragraph", text: "Còn anh, anh chỉ mong trong một vài khoảnh khắc vui của em sau này, thỉnh thoảng anh cũng có thể được xuất hiện ở đó. Không cần quá nhiều, chỉ cần đủ để em nhớ rằng đã có một người từng dành thời gian chuẩn bị điều này cho em." },
-    { cls: "letter-ending", text: "Chúc Ánh có một ngày thật vui.\nVà mong món quà nhỏ này sẽ làm em mỉm cười theo cách thật tự nhiên." },
+    { cls: "letter-paragraph", text: "Anh không biết bắt đầu từ đâu, nên anh làm trang này để em mở từng chút một, theo nhịp của em." },
+    { cls: "letter-paragraph", text: "Những điều anh nhớ về em thường rất nhỏ: cách em kể chuyện, lúc em cười, lúc em yên. Chúng không lớn, nhưng đủ để anh để ý." },
+    { cls: "letter-paragraph", text: "Hôm nay anh chỉ muốn em vui một chút. Không cần lý do, cũng không cần câu trả lời nào." },
+    { cls: "letter-paragraph", text: "Mong những ngày tới của em đầy những điều dễ thương — và thỉnh thoảng, trong vài khoảnh khắc đó, anh cũng được xuất hiện một chút." },
+    { cls: "letter-ending", text: "Chúc Ánh sinh nhật thật dịu dàng." },
     { cls: "signature", text: "— Anh" }
   );
 }
